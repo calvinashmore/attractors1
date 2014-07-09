@@ -24,6 +24,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.List;
 import javax.swing.ImageIcon;
@@ -62,13 +63,14 @@ public class Loader {
     saveToObj(points);
   }
 
-  private static void saveToObj(List<Point3d> points) {
+  private static void saveToObj(List<Point3d> points) throws FileNotFoundException {
     IsoField iso = new OctreeIsoField(new Octree(points), ISO_RADIUS, METABALL_SIZE);
 
     Point3d unitCube = new Point3d(1,1,1);
     List<Triangle> tris = MarchingCubes.tesselate(iso, SLICES,
             unitCube.multiply(-1-2*ISO_RADIUS), unitCube.multiply(1+2*ISO_RADIUS));
     System.out.println("Created "+tris.size()+" triangles");
+    MarchingCubes.saveTriangles(tris, "out.obj");
   }
 
   private static void render(List<Point3d> points) throws HeadlessException {
