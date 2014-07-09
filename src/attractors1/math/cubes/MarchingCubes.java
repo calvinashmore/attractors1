@@ -7,14 +7,24 @@ package attractors1.math.cubes;
 
 import attractors1.math.Point3d;
 import attractors1.math.octree.IsoField;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Adapted from http://paulbourke.net/geometry/polygonise/
  */
 public class MarchingCubes {
-  int edgeTable[]= new int[] {
+
+  private MarchingCubes() {
+    // do not instantiate
+  }
+
+  private static final int EDGE_TABLE[]= new int[] {
       0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
       0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
       0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -48,7 +58,7 @@ public class MarchingCubes {
       0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c,
       0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0};
 
-  int triTable[][] = new int[][]
+  private static final int TRI_TABLE[][] = new int[][]
       {{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
       {0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
       {0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -306,7 +316,7 @@ public class MarchingCubes {
       {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
       {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-  public class GridCell {
+  private static class GridCell {
     Point3d p[] = new Point3d[8];
     double val[] = new double[8];
   }
@@ -319,8 +329,7 @@ public class MarchingCubes {
    0 will be returned if the grid cell is either totally above
    of totally below the isolevel.
    */
-  private void polygonise(GridCell grid, double isolevel, ArrayList<Triangle> triangles) {
-    int i, ntriang;
+  private static void polygonise(GridCell grid, double isolevel, ArrayList<Triangle> triangles) {
     int cubeindex;
     Point3d vertlist[] = new Point3d[12];
 
@@ -355,54 +364,54 @@ public class MarchingCubes {
     }
 
     /* Cube is entirely in/out of the surface */
-    if (edgeTable[cubeindex] == 0) {
+    if (EDGE_TABLE[cubeindex] == 0) {
       return;
     }
 
     /* Find the vertices where the surface intersects the cube */
-    if ((edgeTable[cubeindex] & 1) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 1) != 0) {
       vertlist[0] = interpolate(isolevel, grid.p[0], grid.p[1], grid.val[0], grid.val[1]);
     }
-    if ((edgeTable[cubeindex] & 2) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 2) != 0) {
       vertlist[1] = interpolate(isolevel, grid.p[1], grid.p[2], grid.val[1], grid.val[2]);
     }
-    if ((edgeTable[cubeindex] & 4) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 4) != 0) {
       vertlist[2] = interpolate(isolevel, grid.p[2], grid.p[3], grid.val[2], grid.val[3]);
     }
-    if ((edgeTable[cubeindex] & 8) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 8) != 0) {
       vertlist[3] = interpolate(isolevel, grid.p[3], grid.p[0], grid.val[3], grid.val[0]);
     }
-    if ((edgeTable[cubeindex] & 16) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 16) != 0) {
       vertlist[4] = interpolate(isolevel, grid.p[4], grid.p[5], grid.val[4], grid.val[5]);
     }
-    if ((edgeTable[cubeindex] & 32) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 32) != 0) {
       vertlist[5] = interpolate(isolevel, grid.p[5], grid.p[6], grid.val[5], grid.val[6]);
     }
-    if ((edgeTable[cubeindex] & 64) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 64) != 0) {
       vertlist[6] = interpolate(isolevel, grid.p[6], grid.p[7], grid.val[6], grid.val[7]);
     }
-    if ((edgeTable[cubeindex] & 128) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 128) != 0) {
       vertlist[7] = interpolate(isolevel, grid.p[7], grid.p[4], grid.val[7], grid.val[4]);
     }
-    if ((edgeTable[cubeindex] & 256) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 256) != 0) {
       vertlist[8] = interpolate(isolevel, grid.p[0], grid.p[4], grid.val[0], grid.val[4]);
     }
-    if ((edgeTable[cubeindex] & 512) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 512) != 0) {
       vertlist[9] = interpolate(isolevel, grid.p[1], grid.p[5], grid.val[1], grid.val[5]);
     }
-    if ((edgeTable[cubeindex] & 1024) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 1024) != 0) {
       vertlist[10] = interpolate(isolevel, grid.p[2], grid.p[6], grid.val[2], grid.val[6]);
     }
-    if ((edgeTable[cubeindex] & 2048) != 0) {
+    if ((EDGE_TABLE[cubeindex] & 2048) != 0) {
       vertlist[11] = interpolate(isolevel, grid.p[3], grid.p[7], grid.val[3], grid.val[7]);
     }
 
     /* Create the triangles */
-    for (i = 0; triTable[cubeindex][i] != -1; i += 3) {
+    for (int i = 0; TRI_TABLE[cubeindex][i] != -1; i += 3) {
       triangles.add(new Triangle(
-              vertlist[triTable[cubeindex][i]],
-              vertlist[triTable[cubeindex][i + 1]],
-              vertlist[triTable[cubeindex][i + 2]]));
+              vertlist[TRI_TABLE[cubeindex][i]],
+              vertlist[TRI_TABLE[cubeindex][i + 1]],
+              vertlist[TRI_TABLE[cubeindex][i + 2]]));
     }
   }
 
@@ -410,7 +419,7 @@ public class MarchingCubes {
    Linearly interpolate the position where an isosurface cuts
    an edge between two vertices, each with their own scalar value
    */
-  private Point3d interpolate(double isolevel, Point3d p1, Point3d p2, double valp1, double valp2) {
+  private static Point3d interpolate(double isolevel, Point3d p1, Point3d p2, double valp1, double valp2) {
     double mu;
 
     if (Math.abs(isolevel - valp1) < 0.00001) {
@@ -431,8 +440,13 @@ public class MarchingCubes {
 
   private static final double ISO_LEVEL = 1.0;
 
-  // size is the number of cubes
-  public List<Triangle> tesselate(IsoField field, int size, Point3d min, Point3d max) {
+  /**
+   * Tesselates triangles along the scalar isosurface field.
+   * @param size the number of cubes to march along on each side of the surface.
+   * @param min the minimum x,y,z dimension for the isosurface.
+   * @param max the maximum x,y,z dimension for the isosurface.
+   */
+  public static List<Triangle> tesselate(IsoField field, int size, Point3d min, Point3d max) {
 
     double minx = min.getX();
     double miny = min.getY();
@@ -441,6 +455,7 @@ public class MarchingCubes {
     double dy = (max.getY() - miny) / size;
     double dz = (max.getZ() - minz) / size;
 
+    System.out.println("generating "+size+" slices");
     ArrayList<Triangle> triangles = new ArrayList<>();
     for(int ix=0;ix<size;ix++) {
       for(int iy=0;iy<size;iy++)
@@ -460,9 +475,41 @@ public class MarchingCubes {
         }
         polygonise(cell, ISO_LEVEL, triangles);
       }
-      System.out.println("slice "+ix+" of "+size+" "+triangles.size()+" - generated");
+      System.out.println("slice "+ix+" "+triangles.size()+" - triangles");
     }
 
     return triangles;
+  }
+
+  /**
+   * Save triangles in wavefront obj format.
+   */
+  public static void saveTriangles(List<Triangle> tris, String filename)
+          throws FileNotFoundException {
+    Map<Point3d, Integer> points = new HashMap<>();
+    int pointCount = 1;
+
+    PrintStream outStream = new PrintStream(new File(filename));
+
+    int count = 0;
+    for(Triangle t : tris) {
+
+      for(Point3d p : t.getPoints()) {
+        if(!points.containsKey(p)) {
+          points.put(p, pointCount++);
+          outStream.printf("v %f %f %f\n", p.getX(), p.getY(), p.getZ());
+        }
+      }
+
+      outStream.printf("f %d %d %d\n",
+              points.get(t.getPoints()[0]),
+              points.get(t.getPoints()[1]),
+              points.get(t.getPoints()[2]));
+
+      count++;
+      if(count % 10000 == 0) {
+        System.out.println("Saved "+count+" triangles of "+tris.size());
+      }
+    }
   }
 }

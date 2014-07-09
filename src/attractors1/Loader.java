@@ -13,6 +13,11 @@ import attractors1.fn.Silly09;
 import attractors1.fn.Silly14;
 import attractors1.math.ArrayParams;
 import attractors1.math.Point3d;
+import attractors1.math.cubes.MarchingCubes;
+import attractors1.math.cubes.Triangle;
+import attractors1.math.octree.IsoField;
+import attractors1.math.octree.Octree;
+import attractors1.math.octree.OctreeIsoField;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.event.MouseAdapter;
@@ -31,13 +36,21 @@ import javax.swing.JLabel;
  */
 public class Loader {
 
-  private static final int SIZE = 800;
-  private static final int DOT_SIZE = 10;
+  private static final int WINDOW_SIZE = 800;
 
   private static final int ITERATIONS = 500000;
   private static final int FLUSH = 10000;
 
-  private static double[] PARAMS = new double[] {-0.15787566387202112, 0.895177557569111, 0.16625235513190317, 1.454949356353741, 0.8140974227422564, -1.2838850699523217, 1.3562231622992713, -0.8983063842643229, -1.0504824423398598, 0.6835245545239804, 0.025091990272138598, -0.0969394718095592, -1.3730454913732344, -1.3621655300069895, 0.250821740405735};
+  // number of slices for the marching cubes
+  private static final int SLICES = 500;
+
+  // the size of the metaballs in generating an isosurface
+  private static final double METABALL_SIZE = .005;
+
+  // the radius to search for points in building the isofield
+  private static final double ISO_RADIUS = METABALL_SIZE * 5;
+
+  private static double[] PARAMS = new double[] {-0.3445906491718246, 0.29179394718363905, -0.0906524271518605, 1.1528487387968882, -0.31102968316133894, -0.716046655973521, 0.23946134437748134, 0.8869913700304676, -1.2408912366042095, -0.9902676363499413, -0.0017429971624999263, 0.1466763031617715, -1.2691647023120216, -0.9649674317465828, -0.7111543334150491};
 
 
   public static void main(String args[]) throws Exception {
@@ -45,67 +58,23 @@ public class Loader {
 
     List<Point3d> points = fn.iterate(Point3d.ZERO, ITERATIONS, FLUSH);
     points = Point3d.normalize(points);
-    //saveToObj(points);
-    render(points);
+    //render(points);
+    saveToObj(points);
   }
 
-  private static void saveToScad(List<Point3d> points) throws Exception {
-    try (PrintStream outStream = new PrintStream(new File("out.scad"))) {
-      for(Point3d point : points) {
-        Point3d scalePoint = point.multiply(10);
-        outStream.println(String.format("translate([%f,%f,%f]) sphere(1);",
-                scalePoint.getX(), scalePoint.getY(), scalePoint.getZ()));
-      }
-    }
-  }
+  private static void saveToObj(List<Point3d> points) {
+    IsoField iso = new OctreeIsoField(new Octree(points), ISO_RADIUS, METABALL_SIZE);
 
-  private static void saveToObj(List<Point3d> points) throws Exception {
-
-    try (PrintStream outStream = new PrintStream(new File("out.obj"))) {
-      int index = 0;
-      for(Point3d point : points) {
-        Point3d scalePoint = point.multiply(100);
-        objDot(scalePoint, outStream, index);
-        index++;
-      }
-    }
-  }
-
-  private static void objDot(Point3d dot, PrintStream out, int index) {
-    double dotSize = 2;
-    double x = dot.getX();
-    double y = dot.getY();
-    double z = dot.getZ();
-    double xx = x + dotSize;
-    double yy = y + dotSize;
-    double zz = z + dotSize;
-    out.printf("v %f %f %f\n", x, y, z);
-    out.printf("v %f %f %f\n", x, y, zz);
-    out.printf("v %f %f %f\n", x, yy, z);
-    out.printf("v %f %f %f\n", x, yy, zz);
-    out.printf("v %f %f %f\n", xx, y, z);
-    out.printf("v %f %f %f\n", xx, y, zz);
-    out.printf("v %f %f %f\n", xx, yy, z);
-    out.printf("v %f %f %f\n", xx, yy, zz);
-    int f = 8*index;
-    out.printf("f %d %d %d\n", f+1, f+7, f+5);
-    out.printf("f %d %d %d\n", f+1, f+3, f+7);
-    out.printf("f %d %d %d\n", f+1, f+4, f+3);
-    out.printf("f %d %d %d\n", f+1, f+2, f+4);
-    out.printf("f %d %d %d\n", f+3, f+8, f+7);
-    out.printf("f %d %d %d\n", f+3, f+4, f+8);
-    out.printf("f %d %d %d\n", f+5, f+7, f+8);
-    out.printf("f %d %d %d\n", f+5, f+8, f+6);
-    out.printf("f %d %d %d\n", f+1, f+5, f+6);
-    out.printf("f %d %d %d\n", f+1, f+6, f+2);
-    out.printf("f %d %d %d\n", f+2, f+6, f+8);
-    out.printf("f %d %d %d\n", f+2, f+8, f+4);
+    Point3d unitCube = new Point3d(1,1,1);
+    List<Triangle> tris = MarchingCubes.tesselate(iso, SLICES,
+            unitCube.multiply(-1-2*ISO_RADIUS), unitCube.multiply(1+2*ISO_RADIUS));
+    System.out.println("Created "+tris.size()+" triangles");
   }
 
   private static void render(List<Point3d> points) throws HeadlessException {
     JFrame frame = new JFrame("meef");
     final RendererPanel renderer = new Renderer3d();
-    renderer.setPreferredSize(new Dimension(SIZE, SIZE));
+    renderer.setPreferredSize(new Dimension(WINDOW_SIZE, WINDOW_SIZE));
     frame.add(renderer);
     frame.pack();
     frame.setVisible(true);
