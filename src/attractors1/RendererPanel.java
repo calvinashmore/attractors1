@@ -5,6 +5,7 @@
 package attractors1;
 
 import attractors1.math.Point3d;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.List;
@@ -26,8 +27,11 @@ public abstract class RendererPanel extends JPanel {
 
   @Override
   protected void paintComponent(Graphics g) {
-    if (points == null)
+    if (points == null) {
+      g.setColor(Color.BLACK);
+      g.fillRect(0, 0, getWidth(), getHeight());
       return;
+    }
     paintPoints((Graphics2D)g, points);
   }
 }

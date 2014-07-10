@@ -1,0 +1,31 @@
+# More weirdness; wraps around sphere “keeps making hats”
+# interesting values:
+# params: [-1.1776114901946833, -1.3858451854580687, 1.2671687278723573, 0.8974800468551687, -1.211981108382534, 1.4699550823726555, 0.5972608990219564, -0.5954740155962457, -1.1595001388680113, -0.7806960682697882, -0.4090499563052168, 0.8986904317639641]
+# params: [1.2169036561066706, -0.9579456252529651, -0.8911326046381538, 0.1832236795985075, -0.17970449993139204, 0.6215007407513624, 0.4551879060595584, 0.6825820825376763, 1.2266477425682476, 0.6535461178517894, -0.8195588908989597, -1.3574888860657812]
+
+
+from java.lang import Math
+from attractors1.math import Point3d
+
+def paramSize():
+  return 4*3
+
+def paramScale():
+  return 1.5
+
+def component(v,p, index):
+  o = index * 4;
+  return (Math.sin(v.x * 8) * p[0+o]
+     + Math.cos(v.x * 3)*v.y * p[1+o]
+     + v.z*p[2+o]
+     + p[3+o])
+
+def apply(v, p):
+  k = Point3d(
+      component(v,p,0)*Math.cos(v.z),
+      component(v,p,1)*Math.sin(v.z),
+      component(v,p,2))
+  if k == Point3d.ZERO:
+    return k
+  r = k.normalize()
+  return k.multiply(.1).add(r)

@@ -67,7 +67,6 @@ public class Attractors1 {
   }
 
   private static final int SIZE = 800;
-//  public static final int DOT_SIZE = 5;
   private static final int ATTEMPTS = 10;
 
   private static final int ITERATIONS = 50000;
@@ -98,26 +97,4 @@ public class Attractors1 {
     System.out.println("failed to find function!");
     return null;
   }
-
-//  static BufferedImage buildImage(List<Point3d> points, int size, int dotSize) {
-//    BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-//    Graphics2D g = img.createGraphics();
-//    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//    g.setColor(Color.BLACK);
-//    g.fillRect(0, 0, size, size);
-//    for(int i=0;i<points.size();i++) {
-//      Point3d point = points.get(i);
-//      float progress = ((float)i) / points.size();
-//      float x = (float) (point.getX()+1)/2;
-//      float y = (float) (point.getY()+1)/2;
-//      float z = (float) (point.getZ()+1)/2;
-//
-//      //g.setColor(Color.WHITE);
-//      g.setColor(new Color(1, progress, z));
-//      g.fillOval((int) (size*x - dotSize/2),
-//              (int) (size*y - dotSize/2),
-//              dotSize, dotSize);
-//    }
-//    return img;
-//  }
 }
