@@ -24,6 +24,8 @@ import javax.script.ScriptException;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 
 /**
@@ -43,15 +45,15 @@ public class ScriptedDisplay extends JPanel {
     super(new BorderLayout());
 
     renderer = new Renderer3d();
-    renderer.setPreferredSize(new Dimension(800, 800));
-    add(renderer, BorderLayout.CENTER);
+    renderer.setPreferredSize(new Dimension(-1, -1));
+
 
     JPanel editor = new JPanel(new BorderLayout());
-    editor.setPreferredSize(new Dimension(300, -1));
     add(editor, BorderLayout.EAST);
     textArea = new JTextArea();
     textArea.setText("test test\netc");
-    editor.add(textArea, BorderLayout.CENTER);
+    JScrollPane textAreaScrollPane = new JScrollPane(textArea);
+    editor.add(textAreaScrollPane, BorderLayout.CENTER);
 
     JButton renderButton = new JButton("render");
     editor.add(renderButton, BorderLayout.SOUTH);
@@ -61,6 +63,10 @@ public class ScriptedDisplay extends JPanel {
         generate();
       }
     });
+
+    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, renderer, editor);
+    splitPane.setResizeWeight(0.75);
+    add(splitPane, BorderLayout.CENTER);
   }
 
   private void generate() {
@@ -127,5 +133,4 @@ public class ScriptedDisplay extends JPanel {
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   }
-
 }
