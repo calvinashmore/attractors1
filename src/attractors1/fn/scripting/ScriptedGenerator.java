@@ -43,6 +43,11 @@ public class ScriptedGenerator extends Generator<Point3d, ArrayParams>{
   }
 
   @Override
+  public AttractorFunction<Point3d, ArrayParams> newFunction(ArrayParams params) {
+    return new ScriptedFn(params, script);
+  }
+
+  @Override
   protected Point3d initialValue() {
     return Point3d.ZERO;
   }

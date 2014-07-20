@@ -24,6 +24,15 @@ public class ArrayParams extends Linear<ArrayParams> {
     return data.length;
   }
 
+  /**
+   * Returns a new ArrayParams with the parameter at index given the specified value.
+   */
+  public ArrayParams withValue(int index, double value) {
+    ArrayParams newParams = new ArrayParams(this.data);
+    newParams.data[index] = value;
+    return newParams;
+  }
+
   @Override
   public ArrayParams add(ArrayParams other) {
     assert(this.size() == other.size());

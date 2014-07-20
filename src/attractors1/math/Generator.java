@@ -25,6 +25,7 @@ abstract public class Generator<T extends Linear<T>, P extends Linear<P>> {
 
   /** Generate a new and random set of parameters. */
   abstract protected AttractorFunction<T, P> newFunction(Random random);
+  abstract public AttractorFunction<T, P> newFunction(P params);
 
   /** The initial T to use, usually zero. */
   abstract protected T initialValue();

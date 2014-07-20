@@ -44,6 +44,10 @@ public class BasicGenerator<F extends AbstractFn> extends Generator<Point3d, Arr
     return (AbstractFn) super.generate();
   }
 
+  @Override
+  public AttractorFunction<Point3d, ArrayParams> newFunction(ArrayParams params) {
+    return build(params);
+  }
 
 
   private F build(ArrayParams params) {

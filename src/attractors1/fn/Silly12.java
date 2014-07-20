@@ -18,13 +18,6 @@ public class Silly12 extends AbstractFn {
     super(parameters);
   }
 
-  private double h(double x) {
-    double h = 1.0/x;
-    if(Double.isInfinite(h) || Double.isNaN(h))
-      return 0;
-    return h;
-  }
-
   @Override
   public Point3d apply(Point3d v) {
     double[] p = getParameters().getData();

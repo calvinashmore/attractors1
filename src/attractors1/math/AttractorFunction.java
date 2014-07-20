@@ -13,7 +13,7 @@ import java.util.List;
  */
 abstract public class AttractorFunction<T extends Linear<T>, P extends Linear<P>> {
 
-  private static final double BOUND_THRESHOLD = 10;
+  private static final double BOUND_THRESHOLD = 20;
   private static final double CONVERGENCE_THRESHOLD = .001;
 
   private static final int LYAPUNOV_ITERATIONS = 1000;

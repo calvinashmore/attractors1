@@ -47,7 +47,7 @@ public class Attractors1 {
    */
   public static void main(String[] args) {
 //    final BasicGenerator generator = new BasicGenerator(Silly04.class, 665275420);
-    final BasicGenerator generator = new BasicGenerator(Silly11.class);
+    final BasicGenerator generator = new BasicGenerator(Silly08.class);
 
 
     JFrame frame = new JFrame("meef");
