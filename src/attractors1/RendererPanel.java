@@ -8,6 +8,10 @@ import attractors1.math.Point3d;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import javax.swing.JPanel;
 
@@ -17,6 +21,17 @@ import javax.swing.JPanel;
  */
 public abstract class RendererPanel extends JPanel {
   private List<Point3d> points;
+  private BufferedImage image;
+
+  public RendererPanel() {
+//    setDoubleBuffered(true);
+    addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+      }
+    });
+  }
 
   public void setPoints(List<Point3d> points) {
     this.points = points;
@@ -27,11 +42,18 @@ public abstract class RendererPanel extends JPanel {
 
   @Override
   protected void paintComponent(Graphics g) {
-    if (points == null) {
+//    if (points == null) {
       g.setColor(Color.BLACK);
       g.fillRect(0, 0, getWidth(), getHeight());
+//      return;
+//    }
+
+    if(points == null) {
       return;
     }
-    paintPoints((Graphics2D)g, points);
+
+    g.drawImage(image, 0, 0, this);
+
+    paintPoints((Graphics2D)image.getGraphics(), points);
   }
 }

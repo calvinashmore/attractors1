@@ -23,7 +23,9 @@ public class Octree {
    * unwrapped cells is 8^10, i.e. 1073741824.
    */
   private static final int MAX_MAX_DEPTH = 10;
+  private static final int BOX_COUNTING_OFFSET = 4;
   private final int maxDepth;
+  private final int boxCountingDepth;
 
   private TreeCell root;
   private double minX;
@@ -35,6 +37,7 @@ public class Octree {
 
   private final List<Point3d> points;
   private int numberSmallCells = 0;
+  private int numberSecondSmallCells = 0;
 
 
   public Octree(List<Point3d> points) {
@@ -44,6 +47,7 @@ public class Octree {
   public Octree(List<Point3d> points, int maxDepth) {
     assert maxDepth > 0 && maxDepth <= MAX_MAX_DEPTH;
     this.maxDepth = maxDepth;
+    this.boxCountingDepth = maxDepth - BOX_COUNTING_OFFSET;
 
     calculateBounds(points);
 
@@ -61,12 +65,16 @@ public class Octree {
 
   /**
    * Returns the approximate fractal dimension calculated using box-counting.
-   * Because the maximum depth of the quadtree is relatively low, this will be
-   * an overestimate.
+   * Some notes about this check: This won't give a very accurate result unless the N points added
+   * to the quadtree is very high. We use boxCountingDepth to ensure we're using larger boxes that
+   * will be safe for our value of N.
    */
   public double fractalDimension() {
-    long boxSize = longPow(2, maxDepth);
-    return Math.log(numberSmallCells) / Math.log(boxSize);
+//    System.out.println("# smallCells  " + numberSmallCells);
+//    System.out.println("# secondCells " + numberSecondSmallCells);
+    double ratio = (double)numberSmallCells / numberSecondSmallCells;
+//    System.out.println("ratio: "+ ratio);
+    return Math.log(ratio) / Math.log(2.0);
   }
 
   private void calculateBounds(List<Point3d> points) {
@@ -157,8 +165,10 @@ public class Octree {
       this.midRangeY = (minY + maxY) / 2;
       this.midRangeZ = (minZ + maxZ) / 2;
 
-      if (depth == maxDepth) {
+      if (depth == boxCountingDepth) {
         numberSmallCells++;
+      } else if (depth == boxCountingDepth-1) {
+        numberSecondSmallCells++;
       }
     }
 

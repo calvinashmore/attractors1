@@ -13,6 +13,7 @@ import attractors1.fn.scripting.ScriptLoader;
 import attractors1.fn.scripting.ScriptedFn;
 import attractors1.fn.scripting.ScriptedGenerator;
 import attractors1.math.ArrayParams;
+import attractors1.math.AttractorFunction;
 import attractors1.math.Point3d;
 import attractors1.math.octree.Octree;
 import attractors1.parameters.ParameterSpaceRendererPanel;
@@ -66,7 +67,20 @@ public class ScriptedDisplay extends JPanel {
     JPanel editor = new JPanel(new BorderLayout());
     add(editor, BorderLayout.EAST);
     textArea = new JTextArea();
-    textArea.setText("test test\netc");
+    textArea.setText("from java.lang import Math\n" +
+        "from attractors1.math import Point3d\n" +
+        "\n" +
+        "def paramSize():\n" +
+        "  return 6\n" +
+        "\n" +
+        "def paramScale():\n" +
+        "  return 1.5\n" +
+        "\n" +
+        "def apply(v, p):\n" +
+        "  return Point3d(\n" +
+        "      v.x*v.x + p[0]*v.y + p[3],\n" +
+        "      v.y*v.y + p[1]*v.z + p[4],\n" +
+        "      v.z*v.z + p[2]*v.x + p[5])");
     JScrollPane textAreaScrollPane = new JScrollPane(textArea);
     editor.add(textAreaScrollPane, BorderLayout.CENTER);
 
@@ -91,7 +105,14 @@ public class ScriptedDisplay extends JPanel {
 //        ParameterSpaceRenderer paramRenderer = new ParameterSpaceRenderer(generator, currentParams);
 
         final JFrame frame = new JFrame("omg");
-        final ParameterSpaceRendererPanel paramRenderer = new ParameterSpaceRendererPanel();
+        final ParameterSpaceRendererPanel paramRenderer = new ParameterSpaceRendererPanel(new ParameterSpaceRendererPanel.ParamListener() {
+
+          @Override
+          public void onParams(ArrayParams params) {
+            GenerationResult result = generatePoints(generator, params);
+            renderer.setPoints(result.getPoints());
+          }
+        });
         paramRenderer.setDisplay(generator, currentParams);
         frame.addWindowListener(new WindowAdapter() {
           @Override
@@ -174,6 +195,22 @@ public class ScriptedDisplay extends JPanel {
     }
   }
 
+  private static GenerationResult generatePoints(ScriptedGenerator generator, ArrayParams params) {
+    AttractorFunction<Point3d, ArrayParams> fn = generator.newFunction(params);
+    List<Point3d> points = fn.iterate(Point3d.ZERO, ITERATIONS, FLUSH);
+    points = Point3d.normalize(points);
+
+    try {
+      System.out.println("lyapunov:  " + fn.calculateLyapunov(Point3d.ZERO));
+      double dimension = new Octree(points,10).fractalDimension();
+      System.out.println("dimension: " + dimension);
+    } catch(IllegalArgumentException ex) {
+      // sometimes the quadtree can fail to calculate.
+      // Don't explode.
+    }
+    return new GenerationResult(fn.getParameters(), points);
+  }
+
   private static GenerationResult generatePoints(ScriptedGenerator generator) {
     for (int i = 0; i < ATTEMPTS; i++) {
       ScriptedFn fn = generator.generate();
@@ -188,7 +225,7 @@ public class ScriptedDisplay extends JPanel {
       points = Point3d.normalize(points);
 
       double dimension = new Octree(points,10).fractalDimension();
-      if (dimension < 1.0) {
+      if (dimension < .8) {
         continue;
       }
 

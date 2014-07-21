@@ -66,6 +66,18 @@ public class ParameterSpaceRenderer {
   }
 
   /**
+   * x and y in 0-1 space from min to max.
+   */
+  public ArrayParams getParams(double x, double y) {
+    double xParam = x * (maxXParam - minXParam) + minXParam;
+    double yParam = y * (maxYParam - minYParam) + minYParam;
+
+    return new ArrayParams(baseParams.getData())
+            .withValue(indexXParam, xParam)
+            .withValue(indexYParam, yParam);
+  }
+
+  /**
    * calculates the parameter space for the given values.
    */
   public Quadtree calculate(int size, Listener listener) {
@@ -79,21 +91,11 @@ public class ParameterSpaceRenderer {
 
     for(int x=0;x<resolution;x++) {
       for (int y = 0; y < resolution; y++) {
-
-        double xParam = ((double) x / resolution) * (maxXParam - minXParam) + minXParam;
-        double yParam = ((double) y / resolution) * (maxYParam - minYParam) + minYParam;
-
-        ArrayParams newParams = new ArrayParams(baseParams.getData())
-                .withValue(indexXParam, xParam)
-                .withValue(indexYParam, yParam);
-
         Pixel pixel = new Pixel();
-        pixel.params = newParams;
+        pixel.params = getParams((double) x / resolution, (double) y / resolution);
         pixel.x = x;
         pixel.y = y;
         pixels.add(pixel);
-
-//        executor.submit(new GenerateResultCallable(newParams, x, y, quadtree, listener));
       }
     }
 
@@ -111,31 +113,6 @@ public class ParameterSpaceRenderer {
     ArrayParams params;
     int x,y;
   }
-
-//  public BufferedImage render(int xSize, int ySize) {
-//    BufferedImage image = new BufferedImage(xSize, ySize, BufferedImage.TYPE_INT_RGB);
-//
-//    for(int x=0;x<xSize;x++) {
-//      System.out.println("Calculating param space line "+x+" of "+xSize);
-//      for (int y = 0; y < ySize; y++) {
-//
-//        double xParam = ((double) x / xSize) * (maxXParam - minXParam) + minXParam;
-//        double yParam = ((double) y / ySize) * (maxYParam - minYParam) + minYParam;
-//
-//        ArrayParams newParams = new ArrayParams(baseParams.getData())
-//                .withValue(indexXParam, xParam)
-//                .withValue(indexYParam, yParam);
-//
-////        executor.submit(new )
-//        AttractorResult3d result = generateResult(newParams);
-//        Color color = calculateColor(result);
-//
-//        image.setRGB(x, y, color.getRGB());
-//      }
-//    }
-//
-//    return image;
-//  }
 
   private class GenerateResultCallable implements Runnable {
     private final ArrayParams newParams;

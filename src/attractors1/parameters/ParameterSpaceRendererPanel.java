@@ -13,6 +13,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.JPanel;
 
 /**
@@ -26,6 +28,25 @@ public class ParameterSpaceRendererPanel extends JPanel implements ParameterSpac
 
   private ParameterSpaceRenderer renderer;
   private volatile Quadtree quadtree;
+//  private final ParamListener paramListener;
+
+  public ParameterSpaceRendererPanel(final ParamListener paramListener) {
+//    this.paramListener = paramListener;
+    addMouseListener(new MouseAdapter() {
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        float x = (float) e.getX() / getWidth();
+        float y = (float) e.getY() / getHeight();
+        if(renderer != null)
+          paramListener.onParams(renderer.getParams(x, y));
+      }
+    });
+  }
+
+  public interface ParamListener {
+    void onParams(ArrayParams params);
+  }
 
   public void stopCalculation() {
     if(renderer != null) {
@@ -44,8 +65,6 @@ public class ParameterSpaceRendererPanel extends JPanel implements ParameterSpac
     int res = (int) (4 * Math.pow(2, RESOLUTION_POWER));
     return new Dimension(res, res);
   }
-
-
 
   @Override
   public void displayUpdated(Quadtree qt) {
@@ -73,11 +92,14 @@ public class ParameterSpaceRendererPanel extends JPanel implements ParameterSpac
   private static Color calculateColor(AttractorResult result) {
     if (result == null) return Color.WHITE;
 
-    double lyapunovValue = (result.getLyapunov()-1)/2;
-    lyapunovValue = Math.max(0, Math.min(1, lyapunovValue));
+    double lyapunov = result.getLyapunov()-1;
+    lyapunov = Math.max(0, Math.min(1, lyapunov));
+
+    double dimension = result.getDimension()-1;
+    dimension = Math.max(0, Math.min(1, dimension));
 
     if (result.getType() == AttractorResult.Type.CHAOTIC) {
-      return new Color((float) lyapunovValue, 1f, 0);
+      return new Color((float) dimension, (float) lyapunov, 0);
     }
     else if (result.getType() == AttractorResult.Type.DIVERGENT) {
       float divergenceRatio = result.getDivergenceRatio();

@@ -137,9 +137,9 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
 
     @Override
     protected double calculateDimension(List<Point3d> points) {
-//      return new Octree(points,10).fractalDimension();
+      return new Octree(points,10).fractalDimension();
       // octree currently broken?
-      return 1;
+//      return 1;
     }
   }
 }
