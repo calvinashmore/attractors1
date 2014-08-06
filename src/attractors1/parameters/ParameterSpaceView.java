@@ -8,6 +8,7 @@ package attractors1.parameters;
 import attractors1.math.ArrayParams;
 import attractors1.math.Generator;
 import attractors1.math.Point3d;
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -36,8 +37,15 @@ public class ParameterSpaceView extends JPanel {
 
     c.gridx = 1;
     c.gridy = 0;
+    c.weightx = 1;
+    c.weighty = 1;
+    c.fill = GridBagConstraints.BOTH;
     rendererPanel = new ParameterSpaceRendererPanel(paramListener);
     add(rendererPanel, c);
+
+    c.weightx = 0;
+    c.weighty = 0;
+    c.fill = GridBagConstraints.NONE;
 
     c.gridx = 0;
     c.gridy = 1;
