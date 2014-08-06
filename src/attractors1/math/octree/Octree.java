@@ -8,7 +8,12 @@ import attractors1.math.Point3d;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  *
@@ -314,5 +319,34 @@ public class Octree {
     assert(b >= 0);
     if(b == 0) return 1;
     return a*longPow(a,b-1);
+  }
+
+  /**
+   * Goes through the octree and counts the number of partitions that are formed by its contents.
+   */
+  public int countPartitions(int countDepth) {
+    if(countDepth > maxDepth) throw new IllegalArgumentException();
+    int size = (int) longPow(2, countDepth);
+    boolean[][][] cells = new boolean[size][size][size];
+    // contents default to false?
+
+    fillData(root, 0, 0, 0, countDepth, cells);
+    return new UnionFind(cells).getPartitions();
+  }
+
+  private void fillData(TreeCell cell, int xpart, int ypart, int zpart, int countDepth, boolean[][][] data) {
+    if(cell.depth == countDepth) {
+      data[xpart][ypart][zpart] = true;
+    } else {
+      for(int i=0;i<8;i++) {
+        if(cell.children[i] == null)
+          continue;
+
+        int x = 2*xpart + ((i>>0) & 1);
+        int y = 2*ypart + ((i>>1) & 1);
+        int z = 2*zpart + ((i>>2) & 1);
+        fillData(cell.children[i], x,y,z, countDepth, data);
+      }
+    }
   }
 }

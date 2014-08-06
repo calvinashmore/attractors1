@@ -24,14 +24,11 @@ public class ParameterSpaceRendererPanel extends JPanel implements ParameterSpac
 
   // actual max resolution is 2^ this value
   private static final int RESOLUTION_POWER = 7; // 2^7 = 128
-//  private static final int RESOLUTION_POWER = 5;
 
   private ParameterSpaceRenderer renderer;
   private volatile Quadtree quadtree;
-//  private final ParamListener paramListener;
 
   public ParameterSpaceRendererPanel(final ParamListener paramListener) {
-//    this.paramListener = paramListener;
     addMouseListener(new MouseAdapter() {
 
       @Override
@@ -54,9 +51,9 @@ public class ParameterSpaceRendererPanel extends JPanel implements ParameterSpac
     }
   }
 
-  public void setDisplay(Generator<Point3d, ArrayParams> generator, ArrayParams basePrams) {
+  public void setDisplay(Generator<Point3d, ArrayParams> generator, ArrayParams basePrams, ParameterViewParameters viewParams) {
     stopCalculation();
-    renderer = new ParameterSpaceRenderer(generator, basePrams);
+    renderer = new ParameterSpaceRenderer(generator, basePrams, viewParams);
     this.quadtree = renderer.calculate(RESOLUTION_POWER, this);
   }
 
@@ -99,7 +96,11 @@ public class ParameterSpaceRendererPanel extends JPanel implements ParameterSpac
     dimension = Math.max(0, Math.min(1, dimension));
 
     if (result.getType() == AttractorResult.Type.CHAOTIC) {
-      return new Color((float) dimension, (float) lyapunov, 0);
+
+      int maxPartitions = 8;
+      double partitions = 1 - Math.min(1, ((double)result.getPartitions() - 1) / maxPartitions);
+
+      return new Color((float) dimension, (float) lyapunov, (float) partitions);
     }
     else if (result.getType() == AttractorResult.Type.DIVERGENT) {
       float divergenceRatio = result.getDivergenceRatio();

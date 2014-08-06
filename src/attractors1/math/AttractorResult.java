@@ -28,6 +28,7 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
 
   // only for chaotic
   private final double dimension;
+  private final int partitions;
 
   // only for divergent
   private final int divergenceIteration;
@@ -66,6 +67,7 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
         }
       }
       this.divergenceIteration = divergenceIteration;
+      this.partitions = 0;
 
     } else {
       divergenceIteration = 0;
@@ -78,6 +80,7 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
       }
 
       dimension = calculateDimension(points);
+      partitions = calculatePartitions(points);
     }
 
   }
@@ -99,6 +102,11 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
    * Note: this is called from constructor.
    */
   abstract protected double calculateDimension(List<T> points);
+
+  /**
+   * Note: this is called from constructor.
+   */
+  abstract protected int calculatePartitions(List<T> points);
 
   public int getCycleSize() {
     return cycleSize;
@@ -128,6 +136,10 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
     return type;
   }
 
+  public int getPartitions() {
+    return partitions;
+  }
+
   public static class AttractorResult3d extends AttractorResult<Point3d, ArrayParams> {
 
     public AttractorResult3d(ArrayParams params,
@@ -135,11 +147,21 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
       super(params, function, points);
     }
 
+    private Octree octree;
+    private Octree octree(List<Point3d> points) {
+      if(octree == null)
+        octree = new Octree(points, 10);
+      return octree;
+    }
+
     @Override
     protected double calculateDimension(List<Point3d> points) {
-      return new Octree(points,10).fractalDimension();
-      // octree currently broken?
-//      return 1;
+      return octree(points).fractalDimension();
+    }
+
+    @Override
+    protected int calculatePartitions(List<Point3d> points) {
+      return octree(points).countPartitions(5);
     }
   }
 }

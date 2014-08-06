@@ -17,6 +17,7 @@ import attractors1.math.AttractorFunction;
 import attractors1.math.Point3d;
 import attractors1.math.octree.Octree;
 import attractors1.parameters.ParameterSpaceRendererPanel;
+import attractors1.parameters.ParameterSpaceView;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -105,7 +106,7 @@ public class ScriptedDisplay extends JPanel {
 //        ParameterSpaceRenderer paramRenderer = new ParameterSpaceRenderer(generator, currentParams);
 
         final JFrame frame = new JFrame("omg");
-        final ParameterSpaceRendererPanel paramRenderer = new ParameterSpaceRendererPanel(new ParameterSpaceRendererPanel.ParamListener() {
+        final ParameterSpaceView paramRenderer = new ParameterSpaceView(new ParameterSpaceRendererPanel.ParamListener() {
 
           @Override
           public void onParams(ArrayParams params) {
@@ -113,7 +114,9 @@ public class ScriptedDisplay extends JPanel {
             renderer.setPoints(result.getPoints());
           }
         });
-        paramRenderer.setDisplay(generator, currentParams);
+        if(currentParams != null) {
+          paramRenderer.setDisplay(generator, currentParams);
+        }
         frame.addWindowListener(new WindowAdapter() {
           @Override
           public void windowClosed(WindowEvent e) {
@@ -202,8 +205,9 @@ public class ScriptedDisplay extends JPanel {
 
     try {
       System.out.println("lyapunov:  " + fn.calculateLyapunov(Point3d.ZERO));
-      double dimension = new Octree(points,10).fractalDimension();
-      System.out.println("dimension: " + dimension);
+      Octree octree = new Octree(points,10);
+      System.out.println("dimension: " + octree.fractalDimension());
+      System.out.println("partitions: " + octree.countPartitions(5));
     } catch(IllegalArgumentException ex) {
       // sometimes the quadtree can fail to calculate.
       // Don't explode.
@@ -224,7 +228,8 @@ public class ScriptedDisplay extends JPanel {
       }
       points = Point3d.normalize(points);
 
-      double dimension = new Octree(points,10).fractalDimension();
+      Octree octree = new Octree(points,10);
+      double dimension = octree.fractalDimension();
       if (dimension < .8) {
         continue;
       }
@@ -232,6 +237,7 @@ public class ScriptedDisplay extends JPanel {
       System.out.println("lyapunov:  " + fn.calculateLyapunov(Point3d.ZERO));
       System.out.println("params: " + fn.getParameters());
       System.out.println("dimension: " + dimension);
+      System.out.println("partitions: " + octree.countPartitions(5));
       return new GenerationResult(fn.getParameters(), points);
     }
 

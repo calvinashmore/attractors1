@@ -29,15 +29,7 @@ import java.util.concurrent.Future;
 public class ParameterSpaceRenderer {
 
   // maxima/minima for ArrayParams.
-  // final?
-  private double minXParam = -1;
-  private double maxXParam = 1;
-  private double minYParam = -1;
-  private double maxYParam = 1;
-
-  // indices of the ArrayParams
-  private int indexXParam = 0;
-  private int indexYParam = 1;
+  private final ParameterViewParameters viewParams;
 
   private final Generator<Point3d, ArrayParams> generator;
   private final ArrayParams baseParams;
@@ -53,9 +45,10 @@ public class ParameterSpaceRenderer {
     void displayUpdated(Quadtree qt);
   }
 
-  public ParameterSpaceRenderer(Generator<Point3d, ArrayParams> generator, ArrayParams basePrams) {
+  public ParameterSpaceRenderer(Generator<Point3d, ArrayParams> generator, ArrayParams basePrams, ParameterViewParameters viewParams) {
     this.generator = generator;
     this.baseParams = basePrams;
+    this.viewParams = viewParams;
   }
 
   /**
@@ -69,12 +62,12 @@ public class ParameterSpaceRenderer {
    * x and y in 0-1 space from min to max.
    */
   public ArrayParams getParams(double x, double y) {
-    double xParam = x * (maxXParam - minXParam) + minXParam;
-    double yParam = y * (maxYParam - minYParam) + minYParam;
+    double xParam = x * (viewParams.maxXParam - viewParams.minXParam) + viewParams.minXParam;
+    double yParam = y * (viewParams.maxYParam - viewParams.minYParam) + viewParams.minYParam;
 
     return new ArrayParams(baseParams.getData())
-            .withValue(indexXParam, xParam)
-            .withValue(indexYParam, yParam);
+            .withValue(viewParams.indexXParam, xParam)
+            .withValue(viewParams.indexYParam, yParam);
   }
 
   /**

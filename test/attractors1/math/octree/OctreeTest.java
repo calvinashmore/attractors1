@@ -50,4 +50,36 @@ public class OctreeTest {
     nearPoints = octree.getNearbyPoints(Point3d.UNIT_Z, .1);
     Assert.assertEquals(2, nearPoints.size());
   }
+
+  @Test
+  public void testPartitions1() {
+    List<Point3d> points = new ArrayList<>();
+    points.add(Point3d.ZERO);
+    points.add(Point3d.UNIT_X);
+    points.add(Point3d.UNIT_Y);
+    points.add(Point3d.UNIT_Z);
+
+    Octree octree = new Octree(points);
+
+    Assert.assertEquals(1, octree.countPartitions(1));
+    Assert.assertEquals(4, octree.countPartitions(2));
+    Assert.assertEquals(4, octree.countPartitions(4));
+  }
+
+  @Test
+  public void testPartitions2() {
+    List<Point3d> points = new ArrayList<>();
+    Point3d start = new Point3d(1, 0, .0);
+    Point3d end = new Point3d(0, 1, .0);
+    for(int i=0;i<100;i++) {
+      double t = (double)i/100;
+      // two parallel segments
+      points.add(start.multiply(t).add(end.multiply(1-t)));
+      points.add(start.multiply(t).add(end.multiply(1-t)).add(new Point3d(1,0,0)));
+    }
+
+    Octree octree = new Octree(points);
+
+    Assert.assertEquals(2, octree.countPartitions(4));
+  }
 }
