@@ -98,7 +98,8 @@ public class ParameterSpaceRendererPanel extends JPanel implements ParameterSpac
     if (result.getType() == AttractorResult.Type.CHAOTIC) {
 
       int maxPartitions = 8;
-      double partitions = 1 - Math.min(1, ((double)result.getPartitions() - 1) / maxPartitions);
+      double v = 1 - ((double)result.getPartitions() - 1) / maxPartitions;
+      double partitions = Math.max(0, Math.min(1, v));
 
       return new Color((float) dimension, (float) lyapunov, (float) partitions);
     }

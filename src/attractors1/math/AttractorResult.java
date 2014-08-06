@@ -147,21 +147,14 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
       super(params, function, points);
     }
 
-    private Octree octree;
-    private Octree octree(List<Point3d> points) {
-      if(octree == null)
-        octree = new Octree(points, 10);
-      return octree;
-    }
-
     @Override
     protected double calculateDimension(List<Point3d> points) {
-      return octree(points).fractalDimension();
+      return new Octree(points, 10).fractalDimension();
     }
 
     @Override
     protected int calculatePartitions(List<Point3d> points) {
-      return octree(points).countPartitions(5);
+      return new Octree(points, 5).countPartitions(5);
     }
   }
 }

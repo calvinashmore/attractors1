@@ -39,8 +39,4 @@ public class ParameterViewParameters {
     if(indexXParam < 0 || indexYParam < 0)
       throw new IllegalArgumentException();
   }
-
-
-
-
 }
