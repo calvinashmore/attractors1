@@ -8,7 +8,6 @@ package attractors1.parameters;
 import attractors1.math.ArrayParams;
 import attractors1.math.Generator;
 import attractors1.math.Point3d;
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -29,7 +28,7 @@ public class ParameterSpaceView extends JPanel {
   private Generator<Point3d, ArrayParams> currentGenerator;
   private ArrayParams currentBaseParams;
 
-  private JButton updateViewButton;
+  private final JButton updateViewButton;
 
   public ParameterSpaceView(ParameterSpaceRendererPanel.ParamListener paramListener) {
     setLayout(new GridBagLayout());
@@ -70,18 +69,55 @@ public class ParameterSpaceView extends JPanel {
     add(buildRightControlBar(), c);
   }
 
+  private ActionListener navigateAction(final double dMinX, final double dMaxX, final double dMinY, final double dMaxY) {
+    return new ActionListener() {
+      @Override public void actionPerformed(ActionEvent e) {
+        ParameterViewParameters viewParams = getUiViewParams();
+        double dX = viewParams.maxXParam - viewParams.minXParam;
+        double dY = viewParams.maxYParam - viewParams.minYParam;
+        ParameterViewParameters newParams = new ParameterViewParameters(
+                viewParams.minXParam + dX*dMinX,
+                viewParams.maxXParam + dX*dMaxX,
+                viewParams.minYParam + dY*dMinY,
+                viewParams.maxYParam + dY*dMaxY,
+                viewParams.indexXParam,
+                viewParams.indexYParam);
+        refreshViewParams(newParams);
+      }
+    };
+  }
+
+  private JButton createButton(String text, ActionListener listener) {
+    JButton button = new JButton(text);
+    button.addActionListener(listener);
+    return button;
+  }
+
   private JPanel buildLeftControlBar() {
     JPanel bar = new JPanel(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
     c.gridy = 0;
 
-    bar.add(maxY = new CaptionedEdit("max y"), c);
+    JPanel topControls = new JPanel();
+    topControls.setLayout(new BoxLayout(topControls, BoxLayout.Y_AXIS));
+    topControls.add(maxY = new CaptionedEdit("max y"));
+    topControls.add(createButton("^", navigateAction(0, 0, -.5, -.5)));
+    bar.add(topControls, c);
 
     c.gridy = 4;
-    bar.add(minY = new CaptionedEdit("min y"), c);
+    JPanel bottomControls = new JPanel();
+    bottomControls.setLayout(new BoxLayout(bottomControls, BoxLayout.Y_AXIS));
+    bottomControls.add(createButton("v", navigateAction(0, 0, .5, .5)));
+    bottomControls.add(minY = new CaptionedEdit("min y"));
+    bar.add(bottomControls, c);
 
     c.gridy = 2;
-    bar.add(indexY = new CaptionedEdit("index y"), c);
+    JPanel middleControls = new JPanel();
+    middleControls.setLayout(new BoxLayout(middleControls, BoxLayout.Y_AXIS));
+    middleControls.add(createButton("+", navigateAction(0, 0, .25, -.25)));
+    middleControls.add(indexY = new CaptionedEdit("index y"));
+    middleControls.add(createButton("-", navigateAction(0, 0, -.5, .5)));
+    bar.add(middleControls, c);
 
     c.gridy = 1;
     c.weighty = 1;
@@ -97,14 +133,26 @@ public class ParameterSpaceView extends JPanel {
     JPanel bar = new JPanel(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
     c.gridx = 4;
-
-    bar.add(maxX = new CaptionedEdit("max x"), c);
+    JPanel rightControls = new JPanel();
+    rightControls.setLayout(new BoxLayout(rightControls, BoxLayout.X_AXIS));
+    rightControls.add(maxX = new CaptionedEdit("max x"));
+    rightControls.add(createButton(">", navigateAction(.5, .5, 0, 0)));
+    bar.add(rightControls, c);
 
     c.gridx = 0;
-    bar.add(minX = new CaptionedEdit("min x"), c);
+    JPanel leftControls = new JPanel();
+    leftControls.setLayout(new BoxLayout(leftControls, BoxLayout.X_AXIS));
+    leftControls.add(minX = new CaptionedEdit("min x"));
+    leftControls.add(createButton("<", navigateAction(-.5, -.5, 0, 0)));
+    bar.add(leftControls, c);
 
     c.gridx = 2;
-    bar.add(indexX = new CaptionedEdit("index x"), c);
+    JPanel middleControls = new JPanel();
+    middleControls.setLayout(new BoxLayout(middleControls, BoxLayout.X_AXIS));
+    middleControls.add(createButton("-", navigateAction(-.5, .5, 0, 0)));
+    middleControls.add(indexX = new CaptionedEdit("index x"));
+    middleControls.add(createButton("+", navigateAction(.25, -.25, 0, 0)));
+    bar.add(middleControls, c);
 
     c.gridx = 1;
     c.weightx = 1;
