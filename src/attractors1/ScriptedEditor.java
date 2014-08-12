@@ -52,11 +52,11 @@ class ScriptedEditor extends JPanel {
   private String lastContents = null;
   private final JTextArea scriptArea;
   private final JButton renderButton;
-  private final RendererPanel renderer;
+  private final Renderer renderer;
   private final ExecutorService executor = Executors.newCachedThreadPool();
   private ArrayParams currentParams;
 
-  public ScriptedEditor(RendererPanel renderer) {
+  public ScriptedEditor(Renderer renderer) {
     this.renderer = renderer;
     setLayout(new BorderLayout());
     scriptArea = new JTextArea();
@@ -143,5 +143,4 @@ class ScriptedEditor extends JPanel {
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
   }
-
 }

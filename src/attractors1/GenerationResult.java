@@ -9,6 +9,7 @@ import attractors1.fn.scripting.ScriptedFn;
 import attractors1.fn.scripting.ScriptedGenerator;
 import attractors1.math.ArrayParams;
 import attractors1.math.AttractorFunction;
+import attractors1.math.AttractorResult;
 import attractors1.math.Point3d;
 import attractors1.math.octree.Octree;
 import java.util.List;
@@ -23,10 +24,12 @@ class GenerationResult {
   private static final int FLUSH = 10000;
   private final ArrayParams params;
   private final List<Point3d> points;
+  private final AttractorResult<Point3d, ArrayParams> result;
 
-  public GenerationResult(ArrayParams params, List<Point3d> points) {
+  private GenerationResult(ArrayParams params, List<Point3d> points, AttractorResult<Point3d, ArrayParams> result) {
     this.params = params;
     this.points = points;
+    this.result = result;
   }
 
   public ArrayParams getParams() {
@@ -41,17 +44,9 @@ class GenerationResult {
     AttractorFunction<Point3d, ArrayParams> fn = generator.newFunction(params);
     List<Point3d> points = fn.iterate(Point3d.ZERO, ITERATIONS, FLUSH);
     points = Point3d.normalize(points);
-    try {
-      System.out.println("lyapunov:  " + fn.calculateLyapunov(Point3d.ZERO));
-      System.out.println("params: " + fn.getParameters());
-      Octree octree = new Octree(points, 10);
-      System.out.println("dimension: " + octree.fractalDimension());
-      System.out.println("partitions: " + octree.countPartitions(5));
-    } catch (IllegalArgumentException ex) {
-      // sometimes the quadtree can fail to calculate.
-      // Don't explode.
-    }
-    return new GenerationResult(fn.getParameters(), points);
+    AttractorResult<Point3d, ArrayParams> result = AttractorResult.calculate(fn, points, AttractorResult.OCTREE_DIMENSION_CALCULATOR);
+    System.out.println(result.getStats());
+    return new GenerationResult(fn.getParameters(), points, result);
   }
 
   static GenerationResult generatePoints(ScriptedGenerator generator) {
@@ -70,14 +65,12 @@ class GenerationResult {
       if (dimension < .8) {
         continue;
       }
-      System.out.println("lyapunov:  " + fn.calculateLyapunov(Point3d.ZERO));
-      System.out.println("params: " + fn.getParameters());
-      System.out.println("dimension: " + dimension);
-      System.out.println("partitions: " + octree.countPartitions(5));
-      return new GenerationResult(fn.getParameters(), points);
+
+    AttractorResult<Point3d, ArrayParams> result = AttractorResult.calculate(fn, points, AttractorResult.OCTREE_DIMENSION_CALCULATOR);
+      System.out.println(result.getStats());
+      return new GenerationResult(fn.getParameters(), points, result);
     }
     System.out.println("failed to find function!");
     return null;
   }
-
 }

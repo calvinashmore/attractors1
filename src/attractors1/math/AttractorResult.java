@@ -12,7 +12,7 @@ import java.util.List;
  * Data type representing some miscellaneous facts about an attractor's behavior
  * at a point in parameter space.
  */
-abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> {
+public class AttractorResult<T extends Linear<T>, P extends Linear<P>> {
 
   // the maximum size of a cycle we're willing to detect
   public static final int MAX_CYCLE_SIZE = 100;
@@ -22,7 +22,6 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
   private final int pointLength;
 
   private final AttractorFunction<T,P> function;
-  private final P params;
   private final double lyapunov;
   private final Type type;
 
@@ -37,6 +36,16 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
   // value of zero implies chaotic
   private final int cycleSize;
 
+  public String getStats() {
+    return "type:       " + type + "\n"
+         + "dimension:  " + dimension + "\n"
+         + "lyapunov:   " + lyapunov + "\n"
+         + "partitions: " + partitions + "\n"
+         + "divergence: " + divergenceIteration + "\n"
+         + "cycleSize:  " + cycleSize + "\n"
+         + "params:     " + function.getParameters() + "\n";
+  }
+
   public float getCycleRatio() {
     return (float)(cycleSize-1) / MAX_CYCLE_SIZE;
   }
@@ -49,28 +58,42 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
     CHAOTIC, DIVERGENT, CYCLIC,
   }
 
-  public AttractorResult(P params, AttractorFunction<T,P> function, List<T> points) {
-    this.params = params;
+  private AttractorResult(int pointLength, AttractorFunction<T, P> function, double lyapunov, Type type, double dimension, int partitions, int divergenceIteration, int cycleSize) {
+    this.pointLength = pointLength;
     this.function = function;
-    this.pointLength = points.size();
+    this.lyapunov = lyapunov;
+    this.type = type;
+    this.dimension = dimension;
+    this.partitions = partitions;
+    this.divergenceIteration = divergenceIteration;
+    this.cycleSize = cycleSize;
+  }
 
-    lyapunov = function.calculateLyapunov(points.get(0));
+
+
+  public static <T extends Linear<T>, P extends Linear<P>> AttractorResult<T,P>
+        calculate(AttractorFunction<T,P> function, List<T> points, DimensionCalculator<T> dimensionCalculator) {
+    int pointLength = points.size();
+    Type type;
+    double dimension;
+    int cycleSize;
+    int divergenceIteration = 0;
+    int partitions = 0;
+
+    double lyapunov = function.calculateLyapunov(points.get(0));
     if(!function.isBounded(points.get(points.size()-1))) {
       type = Type.DIVERGENT;
       dimension = 0;
       cycleSize = 0;
-      int divergenceIteration = 0;
+
       for(int i=0;i<points.size();i++) {
         if(!function.isBounded(points.get(i))) {
           divergenceIteration = i;
           break;
         }
       }
-      this.divergenceIteration = divergenceIteration;
-      this.partitions = 0;
 
     } else {
-      divergenceIteration = 0;
 
       cycleSize = calculateCycleSize(points);
       if(cycleSize == 0) {
@@ -79,13 +102,14 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
         type = Type.CYCLIC;
       }
 
-      dimension = calculateDimension(points);
-      partitions = calculatePartitions(points);
+      dimension = dimensionCalculator.calculateDimension(points);
+      partitions = dimensionCalculator.calculatePartitions(points);
     }
 
+    return new AttractorResult<>(pointLength, function, lyapunov, type, dimension, partitions, divergenceIteration, cycleSize);
   }
 
-  private int calculateCycleSize(List<T> points) {
+  private static <T extends Linear<T>> int calculateCycleSize(List<T> points) {
     // we assume that if it's cyclic, it's reached its cycle at the end of the point list.
     int lastIndex = points.size()-1;
     T point = points.get(lastIndex);
@@ -98,15 +122,10 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
     return 0;
   }
 
-  /**
-   * Note: this is called from constructor.
-   */
-  abstract protected double calculateDimension(List<T> points);
-
-  /**
-   * Note: this is called from constructor.
-   */
-  abstract protected int calculatePartitions(List<T> points);
+  public interface DimensionCalculator<T extends Linear<T>> {
+    double calculateDimension(List<T> points);
+    int calculatePartitions(List<T> points);
+  }
 
   public int getCycleSize() {
     return cycleSize;
@@ -128,10 +147,6 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
     return lyapunov;
   }
 
-  public P getParams() {
-    return params;
-  }
-
   public Type getType() {
     return type;
   }
@@ -140,21 +155,16 @@ abstract public class AttractorResult<T extends Linear<T>, P extends Linear<P>> 
     return partitions;
   }
 
-  public static class AttractorResult3d extends AttractorResult<Point3d, ArrayParams> {
-
-    public AttractorResult3d(ArrayParams params,
-            AttractorFunction<Point3d, ArrayParams> function,List<Point3d> points) {
-      super(params, function, points);
-    }
-
+  public static final DimensionCalculator<Point3d> OCTREE_DIMENSION_CALCULATOR
+          = new DimensionCalculator<Point3d>() {
     @Override
-    protected double calculateDimension(List<Point3d> points) {
+    public double calculateDimension(List<Point3d> points) {
       return new Octree(points, 10).fractalDimension();
     }
 
     @Override
-    protected int calculatePartitions(List<Point3d> points) {
+    public int calculatePartitions(List<Point3d> points) {
       return new Octree(points, 5).countPartitions(5);
     }
-  }
+  };
 }

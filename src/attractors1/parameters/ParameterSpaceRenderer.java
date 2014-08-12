@@ -8,20 +8,13 @@ package attractors1.parameters;
 import attractors1.math.ArrayParams;
 import attractors1.math.AttractorFunction;
 import attractors1.math.AttractorResult;
-import attractors1.math.AttractorResult.AttractorResult3d;
 import attractors1.math.Generator;
 import attractors1.math.Point3d;
-import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * Logic class that calculates how points should be displayed based on an AttractorResult.
@@ -123,7 +116,7 @@ public class ParameterSpaceRenderer {
 
     @Override
     public void run() {
-      AttractorResult3d result = generateResult(newParams);
+      AttractorResult<Point3d, ArrayParams> result = generateResult(newParams);
       quadtree.setResult(x, y, result);
       listener.displayUpdated(quadtree);
     }
@@ -131,9 +124,9 @@ public class ParameterSpaceRenderer {
 
   int generated = 0;
 
-  private AttractorResult3d generateResult(ArrayParams newParams) {
+  private AttractorResult<Point3d, ArrayParams> generateResult(ArrayParams newParams) {
     AttractorFunction<Point3d, ArrayParams> function = generator.newFunction(newParams);
     List<Point3d> points = function.iterate(Point3d.ZERO, ITERATIONS, FLUSH);
-    return new AttractorResult3d(newParams, function, points);
+    return AttractorResult.calculate(function, points, AttractorResult.OCTREE_DIMENSION_CALCULATOR);
   }
 }

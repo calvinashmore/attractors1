@@ -10,7 +10,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import javax.swing.JPanel;
@@ -19,12 +18,11 @@ import javax.swing.JPanel;
  *
  * @author ashmore
  */
-public abstract class RendererPanel extends JPanel {
+public abstract class RendererPanel extends JPanel implements Renderer {
   private List<Point3d> points;
   private BufferedImage image;
 
   public RendererPanel() {
-//    setDoubleBuffered(true);
     addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
@@ -33,6 +31,7 @@ public abstract class RendererPanel extends JPanel {
     });
   }
 
+  @Override
   public void setPoints(List<Point3d> points) {
     this.points = points;
     repaint();
@@ -42,18 +41,14 @@ public abstract class RendererPanel extends JPanel {
 
   @Override
   protected void paintComponent(Graphics g) {
-//    if (points == null) {
-      g.setColor(Color.BLACK);
-      g.fillRect(0, 0, getWidth(), getHeight());
-//      return;
-//    }
+    g.setColor(Color.BLACK);
+    g.fillRect(0, 0, getWidth(), getHeight());
 
     if(points == null) {
       return;
     }
 
     g.drawImage(image, 0, 0, this);
-
     paintPoints((Graphics2D)image.getGraphics(), points);
   }
 }
