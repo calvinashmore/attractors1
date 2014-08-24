@@ -42,8 +42,14 @@ public class AttractorResult<T extends Linear<T>, P extends Linear<P>> {
          + "lyapunov:   " + lyapunov + "\n"
          + "partitions: " + partitions + "\n"
          + "divergence: " + divergenceIteration + "\n"
-         + "cycleSize:  " + cycleSize + "\n"
-         + "params:     " + function.getParameters() + "\n";
+         + "cycleSize:  " + cycleSize + "\n";
+//         + "params:     " + function.getParameters() + "\n";
+  }
+
+
+  @Override
+  public String toString() {
+    return getStats();
   }
 
   public float getCycleRatio() {

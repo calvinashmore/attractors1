@@ -34,12 +34,14 @@ public class ParameterSpaceView extends JPanel {
     setLayout(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
 
+    ResultView resultView = new ResultView();
+
     c.gridx = 1;
     c.gridy = 0;
     c.weightx = 1;
     c.weighty = 1;
     c.fill = GridBagConstraints.BOTH;
-    rendererPanel = new ParameterSpaceRendererPanel(paramListener);
+    rendererPanel = new ParameterSpaceRendererPanel(paramListener, resultView);
     add(rendererPanel, c);
 
     c.weightx = 0;
@@ -67,6 +69,12 @@ public class ParameterSpaceView extends JPanel {
     c.gridy = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     add(buildRightControlBar(), c);
+
+    c.gridx = 0;
+    c.gridy = 2;
+    c.gridwidth = 2;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    add(resultView, c);
   }
 
   private ActionListener navigateAction(final double dMinX, final double dMaxX, final double dMinY, final double dMaxY) {

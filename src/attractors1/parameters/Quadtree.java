@@ -37,6 +37,10 @@ public class Quadtree {
     return (int) Math.pow(2, maxLevel);
   }
 
+  public AttractorResult getResult(int x, int y) {
+    return root.getResult(x,y);
+  }
+
 
   private class Cell {
     private int level;
@@ -80,6 +84,51 @@ public class Quadtree {
       }
 
       children[index].setResult(x, y, result);
+    }
+
+    // x and y are in full coordinates with respect to here
+    public AttractorResult getResult(int x, int y) {
+      if (level == maxLevel)
+        return result;
+      if (filledChildren == 0)
+        return null; // hopefully won't happen
+
+      int halfSize = 1 << (maxLevel - level - 1);
+      int ix = 0;
+      int iy = 0;
+      if (x >= halfSize) {
+        ix = 1;
+        x -= halfSize;
+      }
+      if (y >= halfSize) {
+        iy = 1;
+        y -= halfSize;
+      }
+
+      if(children[ix + 2*iy] != null)
+        return children[ix + 2*iy].getResult(x, y);
+
+      // that didn't work, try another one
+      ix = ix == 0 ? 1 : 0;
+
+      if(children[ix + 2*iy] != null)
+        return children[ix + 2*iy].getResult(x, y);
+
+      // again
+      ix = ix == 0 ? 1 : 0;
+      iy = iy == 0 ? 1 : 0;
+
+      if(children[ix + 2*iy] != null)
+        return children[ix + 2*iy].getResult(x, y);
+
+      // and again
+      ix = ix == 0 ? 1 : 0;
+
+      if(children[ix + 2*iy] != null)
+        return children[ix + 2*iy].getResult(x, y);
+
+      // if we're here, we didn't find anything.
+      return null;
     }
 
     public void render(Graphics2D g, ResultPixelator pixelator, int xRes, int yRes) {

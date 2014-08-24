@@ -28,9 +28,8 @@ public class ParameterSpaceRendererPanel extends JPanel implements ParameterSpac
   private ParameterSpaceRenderer renderer;
   private volatile Quadtree quadtree;
 
-  public ParameterSpaceRendererPanel(final ParamListener paramListener) {
-    addMouseListener(new MouseAdapter() {
-
+  public ParameterSpaceRendererPanel(final ParamListener paramListener, final HoverListener hoverListener) {
+    MouseAdapter mouseAdapter = new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
         float x = (float) e.getX() / getWidth();
@@ -38,11 +37,33 @@ public class ParameterSpaceRendererPanel extends JPanel implements ParameterSpac
         if(renderer != null)
           paramListener.onParams(renderer.getParams(x, y));
       }
-    });
+
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        float x = (float) e.getX() / getWidth();
+        float y = (float) e.getY() / getHeight();
+        if(quadtree != null) {
+          int res = quadtree.resolution();
+          int ix = (int) (x * res);
+          int iy = (int) (y * res);
+
+          AttractorResult result = quadtree.getResult(ix, iy);
+//          System.out.println(result);
+          hoverListener.onHover(result);
+        }
+      }
+    };
+
+    addMouseListener(mouseAdapter);
+    addMouseMotionListener(mouseAdapter);
   }
 
   public interface ParamListener {
     void onParams(ArrayParams params);
+  }
+
+  public interface HoverListener {
+    void onHover(AttractorResult result);
   }
 
   public void stopCalculation() {
