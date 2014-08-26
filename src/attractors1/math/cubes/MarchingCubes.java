@@ -440,13 +440,17 @@ public class MarchingCubes {
 
   private static final double ISO_LEVEL = 1.0;
 
+  public interface ProgressListener {
+    public void progress(int line, int totalLines, int triangles);
+  }
+
   /**
    * Tesselates triangles along the scalar isosurface field.
    * @param size the number of cubes to march along on each side of the surface.
    * @param min the minimum x,y,z dimension for the isosurface.
    * @param max the maximum x,y,z dimension for the isosurface.
    */
-  public static List<Triangle> tesselate(IsoField field, int size, Point3d min, Point3d max) {
+  public static List<Triangle> tesselate(IsoField field, ProgressListener listener, int size, Point3d min, Point3d max) {
 
     double minx = min.getX();
     double miny = min.getY();
@@ -475,6 +479,9 @@ public class MarchingCubes {
         }
         polygonise(cell, ISO_LEVEL, triangles);
       }
+      if(listener != null) {
+        listener.progress(ix, size, triangles.size());
+      }
       System.out.println("slice "+ix+" "+triangles.size()+" - triangles");
     }
 
@@ -484,12 +491,12 @@ public class MarchingCubes {
   /**
    * Save triangles in wavefront obj format.
    */
-  public static void saveTriangles(List<Triangle> tris, String filename)
+  public static void saveTriangles(List<Triangle> tris, File file)
           throws FileNotFoundException {
     Map<Point3d, Integer> points = new HashMap<>();
     int pointCount = 1;
 
-    PrintStream outStream = new PrintStream(new File(filename));
+    PrintStream outStream = new PrintStream(file);
 
     int count = 0;
     for(Triangle t : tris) {

@@ -12,7 +12,7 @@ import attractors1.math.Point3d;
  * @author ashmore
  */
 public class Triangle {
-  private Point3d a,b,c;
+  private final Point3d a,b,c;
 
   public Triangle(Point3d a, Point3d b, Point3d c) {
     this.a = a;

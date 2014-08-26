@@ -14,6 +14,9 @@ import java.util.Objects;
  */
 public class Point3d extends Linear<Point3d> {
 
+  // tolerance for equals and hashCode
+  private static final double TOLERANCE = .00001;
+
   public static final Point3d ZERO = new Point3d(0, 0, 0);
   public static final Point3d UNIT_X = new Point3d(1, 0, 0);
   public static final Point3d UNIT_Y = new Point3d(0, 1, 0);
@@ -59,12 +62,25 @@ public class Point3d extends Linear<Point3d> {
   public boolean equals(Object obj) {
     if (obj instanceof Point3d) {
       Point3d that = (Point3d) obj;
-      return Objects.equals(this.x, that.x)
-              && Objects.equals(this.y, that.y)
-              && Objects.equals(this.z, that.z);
+      return equalsWithinTolerance(this.x, that.x)
+              && equalsWithinTolerance(this.y, that.y)
+              && equalsWithinTolerance(this.z, that.z);
     } else {
       return false;
     }
+  }
+
+  private static boolean equalsWithinTolerance(double a, double b) {
+    return Math.abs(a-b) < TOLERANCE;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(toleranceHash(x), toleranceHash(y), toleranceHash(z));
+  }
+
+  private static int toleranceHash(double a) {
+    return (int) (a/TOLERANCE);
   }
 
   public double dot(Point3d point) {
@@ -76,11 +92,6 @@ public class Point3d extends Linear<Point3d> {
             y*point.z - z*point.y,
             z*point.x - x*point.z,
             x*point.y - y*point.x);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(x, y, z);
   }
 
   @Override

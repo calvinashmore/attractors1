@@ -89,6 +89,16 @@ public class ArrayParams extends Linear<ArrayParams> {
     return new ArrayParams(data);
   }
 
+  public static ArrayParams parse(String paramString) {
+    paramString = paramString.replaceAll("[\\[\\]]", "");
+    String[] split = paramString.split(",");
+    double data[] = new double[split.length];
+    for(int i=0;i<split.length;i++) {
+      data[i] = Double.parseDouble(split[i]);
+    }
+    return new ArrayParams(data);
+  }
+
   // exposes internals, which is bad
   public double[] getData() {
     return data;

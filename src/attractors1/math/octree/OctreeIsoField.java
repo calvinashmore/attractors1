@@ -29,12 +29,25 @@ public class OctreeIsoField implements IsoField {
   public double getValue(Point3d point) {
     List<Point3d> nearbyPoints = octree.getNearbyPoints(point, radius);
 
-    double value = 0;
+    double total = 0;
+    double max = 0;
     for(Point3d p : nearbyPoints) {
-      value = Math.max(value, getContribution(point, p));
-//      value += getContribution(point, p);
+      double x = getContribution(point, p);
+      if(x < 1)
+        x = x*x;
+
+      max = Math.max(max, x);
+      total += x;
     }
-    return value;
+
+    if(max == 0)
+      return 0;
+
+    int n = nearbyPoints.size();
+
+    // shows how dense the points are
+    double scale = total/max - 1;
+    return (max + scale/n)/2;
   }
 
   private double getContribution(Point3d point, Point3d other) {

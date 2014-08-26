@@ -53,24 +53,14 @@ public class Loader {
 
   private static double[] PARAMS = new double[] {-0.3445906491718246, 0.29179394718363905, -0.0906524271518605, 1.1528487387968882, -0.31102968316133894, -0.716046655973521, 0.23946134437748134, 0.8869913700304676, -1.2408912366042095, -0.9902676363499413, -0.0017429971624999263, 0.1466763031617715, -1.2691647023120216, -0.9649674317465828, -0.7111543334150491};
 
-
   public static void main(String args[]) throws Exception {
     AbstractFn fn = new Silly14(new ArrayParams(PARAMS));
 
     List<Point3d> points = fn.iterate(Point3d.ZERO, ITERATIONS, FLUSH);
     points = Point3d.normalize(points);
     //render(points);
-    saveToObj(points);
-  }
-
-  private static void saveToObj(List<Point3d> points) throws FileNotFoundException {
-    IsoField iso = new OctreeIsoField(new Octree(points), ISO_RADIUS, METABALL_SIZE);
-
-    Point3d unitCube = new Point3d(1,1,1);
-    List<Triangle> tris = MarchingCubes.tesselate(iso, SLICES,
-            unitCube.multiply(-1-2*ISO_RADIUS), unitCube.multiply(1+2*ISO_RADIUS));
-    System.out.println("Created "+tris.size()+" triangles");
-    MarchingCubes.saveTriangles(tris, "out.obj");
+    List<Triangle> tris = new Tesselator(points, null).saveToObj(ISO_RADIUS, METABALL_SIZE, SLICES);
+    MarchingCubes.saveTriangles(tris, new File("out.obj"));
   }
 
   private static void render(List<Point3d> points) throws HeadlessException {
