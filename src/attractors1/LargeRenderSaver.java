@@ -10,6 +10,10 @@ import attractors1.math.AttractorFunction;
 import attractors1.math.Point3d;
 import attractors1.math.cubes.MarchingCubes;
 import attractors1.math.cubes.Triangle;
+import attractors1.math.octree.DensityFunction;
+import attractors1.math.octree.DensityFunctions;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,16 +30,24 @@ import javax.swing.JProgressBar;
  */
 class LargeRenderSaver extends JPanel implements MarchingCubes.ProgressListener{
 
-  private static final int ITERATIONS = 500000;
+  private static final int DENSITY = 5;
+  private static final int ITERATIONS = 100000 * DENSITY;
   private static final int FLUSH = 10000;
+
+  // box size is from -1 to +1
+  // upload as mm, so total size will be ~300mm cubed
+  private static final double SIZE_MILLIMETERS = 180;
 
   // number of slices for the marching cubes
   private static final int SLICES = 500;
 //  private static final int SLICES = 100;
 
   // the size of the metaballs in generating an isosurface
+//  private static final double METABALL_SIZE = .005;
   private static final double METABALL_SIZE = .005;
-//  private static final double METABALL_SIZE = .02;
+
+  private static final DensityFunction DENSITY_FUNCTION = DensityFunctions.sumPow(
+          METABALL_SIZE, 1.0/DENSITY, 2.0);
 
   // the radius to search for points in building the isofield
   private static final double ISO_RADIUS = METABALL_SIZE * 5;
@@ -82,10 +94,20 @@ class LargeRenderSaver extends JPanel implements MarchingCubes.ProgressListener{
         try {
           status.setText("Tesselating...");
           List<Triangle> tris = new Tesselator(points, LargeRenderSaver.this)
-                  .saveToObj(ISO_RADIUS, METABALL_SIZE, SLICES);
+                  .saveToObj(ISO_RADIUS, METABALL_SIZE, SLICES, DENSITY_FUNCTION);
           status.setText("Smoothing...");
           tris = Tesselator.averageVertices(tris);
           status.setText("Saving...");
+
+          tris = Lists.transform(tris, new Function<Triangle, Triangle>() {
+            @Override public Triangle apply(Triangle f) {
+              return new Triangle(
+                      f.getPoints()[0].multiply(SIZE_MILLIMETERS/2),
+                      f.getPoints()[1].multiply(SIZE_MILLIMETERS/2),
+                      f.getPoints()[2].multiply(SIZE_MILLIMETERS/2));
+            }
+          });
+
           MarchingCubes.saveTriangles(tris, destination);
           status.setText("Done!");
         } catch (FileNotFoundException ex) {

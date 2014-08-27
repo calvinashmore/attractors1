@@ -8,6 +8,7 @@ package attractors1;
 import attractors1.math.Point3d;
 import attractors1.math.cubes.MarchingCubes;
 import attractors1.math.cubes.Triangle;
+import attractors1.math.octree.DensityFunction;
 import attractors1.math.octree.IsoField;
 import attractors1.math.octree.Octree;
 import attractors1.math.octree.OctreeIsoField;
@@ -36,8 +37,8 @@ public class Tesselator {
     this.listener = listener;
   }
 
-  public List<Triangle> saveToObj(double isoRadius, double metaballSize, int slices) throws FileNotFoundException {
-    IsoField iso = new OctreeIsoField(new Octree(points), isoRadius, metaballSize);
+  public List<Triangle> saveToObj(double isoRadius, double metaballSize, int slices, DensityFunction densityFunction) throws FileNotFoundException {
+    IsoField iso = new OctreeIsoField(new Octree(points), isoRadius, metaballSize, densityFunction);
 
     Point3d unitCube = new Point3d(1,1,1).multiply(1+2*isoRadius);
     List<Triangle> tris = MarchingCubes.tesselate(iso, listener, slices, unitCube.multiply(-1), unitCube);
