@@ -275,6 +275,7 @@ class ScriptedEditor extends JPanel {
       public void onParams(ArrayParams params) {
         GenerationResult result = GenerationResult.generatePoints(generator, params);
         renderer.setPoints(result.getPoints());
+        currentParams = params;
       }
     });
     if (currentParams != null) {
