@@ -8,6 +8,7 @@ package attractors1;
 import attractors1.math.Point3d;
 import attractors1.math.cubes.MarchingCubes;
 import attractors1.math.cubes.Triangle;
+import attractors1.math.cubes.Tesselator.ProgressListener;
 import attractors1.math.octree.DensityFunction;
 import attractors1.math.octree.IsoField;
 import attractors1.math.octree.Octree;
@@ -30,9 +31,9 @@ import java.util.Set;
  */
 public class Tesselator {
   private final List<Point3d> points;
-  private final MarchingCubes.ProgressListener listener;
+  private final ProgressListener listener;
 
-  public Tesselator(List<Point3d> points, MarchingCubes.ProgressListener listener) {
+  public Tesselator(List<Point3d> points, ProgressListener listener) {
     this.points = points;
     this.listener = listener;
   }
@@ -41,14 +42,15 @@ public class Tesselator {
     IsoField iso = new OctreeIsoField(new Octree(points), isoRadius, metaballSize, densityFunction);
 
     Point3d unitCube = new Point3d(1,1,1).multiply(1+2*isoRadius);
-    List<Triangle> tris = MarchingCubes.tesselate(iso, listener, slices, unitCube.multiply(-1), unitCube);
+    List<Triangle> tris = new attractors1.math.cubes.Tesselator(iso, listener, slices, unitCube.multiply(-1), unitCube).tesselate();
+//    List<Triangle> tris = MarchingCubes.tesselate(iso, listener, slices, unitCube.multiply(-1), unitCube);
     System.out.println("Created "+tris.size()+" triangles");
     return tris;
   }
 
-  void saveToObj(File destination, double ISO_RADIUS, double METABALL_SIZE, int SLICES) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
+//  void saveToObj(File destination, double ISO_RADIUS, double METABALL_SIZE, int SLICES) {
+//    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//  }
 
   public static List<Triangle> averageVertices(List<Triangle> tris) {
     SetMultimap<Point3d, Point3d> edges = HashMultimap.create();

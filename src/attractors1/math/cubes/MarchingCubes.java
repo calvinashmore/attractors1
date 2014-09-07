@@ -6,6 +6,7 @@
 package attractors1.math.cubes;
 
 import attractors1.math.Point3d;
+import attractors1.math.cubes.Tesselator.ProgressListener;
 import attractors1.math.octree.IsoField;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -316,10 +317,6 @@ public class MarchingCubes {
       {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
       {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-  private static class GridCell {
-    Point3d p[] = new Point3d[8];
-    double val[] = new double[8];
-  }
 
   /*
    Given a grid cell and an isolevel, calculate the triangular
@@ -329,7 +326,7 @@ public class MarchingCubes {
    0 will be returned if the grid cell is either totally above
    of totally below the isolevel.
    */
-  private static void polygonise(GridCell grid, double isolevel, ArrayList<Triangle> triangles) {
+  static void polygonise(GridCell grid, double isolevel, ArrayList<Triangle> triangles) {
     int cubeindex;
     Point3d vertlist[] = new Point3d[12];
 
@@ -440,9 +437,6 @@ public class MarchingCubes {
 
   private static final double ISO_LEVEL = 1.0;
 
-  public interface ProgressListener {
-    public void progress(int line, int totalLines, int triangles);
-  }
 
   /**
    * Tesselates triangles along the scalar isosurface field.
@@ -486,37 +480,5 @@ public class MarchingCubes {
     }
 
     return triangles;
-  }
-
-  /**
-   * Save triangles in wavefront obj format.
-   */
-  public static void saveTriangles(List<Triangle> tris, File file)
-          throws FileNotFoundException {
-    Map<Point3d, Integer> points = new HashMap<>();
-    int pointCount = 1;
-
-    PrintStream outStream = new PrintStream(file);
-
-    int count = 0;
-    for(Triangle t : tris) {
-
-      for(Point3d p : t.getPoints()) {
-        if(!points.containsKey(p)) {
-          points.put(p, pointCount++);
-          outStream.printf("v %f %f %f\n", p.getX(), p.getY(), p.getZ());
-        }
-      }
-
-      outStream.printf("f %d %d %d\n",
-              points.get(t.getPoints()[0]),
-              points.get(t.getPoints()[1]),
-              points.get(t.getPoints()[2]));
-
-      count++;
-      if(count % 10000 == 0) {
-        System.out.println("Saved "+count+" triangles of "+tris.size());
-      }
-    }
   }
 }

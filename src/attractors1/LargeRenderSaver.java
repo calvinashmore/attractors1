@@ -9,6 +9,7 @@ import attractors1.math.ArrayParams;
 import attractors1.math.AttractorFunction;
 import attractors1.math.Point3d;
 import attractors1.math.cubes.MarchingCubes;
+import attractors1.math.cubes.Tesselator.ProgressListener;
 import attractors1.math.cubes.Triangle;
 import attractors1.math.octree.DensityFunction;
 import attractors1.math.octree.DensityFunctions;
@@ -17,7 +18,10 @@ import com.google.common.collect.Lists;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -28,7 +32,7 @@ import javax.swing.JProgressBar;
  *
  * @author ashmore
  */
-class LargeRenderSaver extends JPanel implements MarchingCubes.ProgressListener{
+class LargeRenderSaver extends JPanel implements ProgressListener{
 
   private static final int DENSITY = 5;
   private static final int ITERATIONS = 100000 * DENSITY;
@@ -96,7 +100,7 @@ class LargeRenderSaver extends JPanel implements MarchingCubes.ProgressListener{
           List<Triangle> tris = new Tesselator(points, LargeRenderSaver.this)
                   .saveToObj(ISO_RADIUS, METABALL_SIZE, SLICES, DENSITY_FUNCTION);
           status.setText("Smoothing...");
-          tris = Tesselator.averageVertices(tris);
+          //tris = Tesselator.averageVertices(tris);
           status.setText("Saving...");
 
           tris = Lists.transform(tris, new Function<Triangle, Triangle>() {
@@ -108,7 +112,7 @@ class LargeRenderSaver extends JPanel implements MarchingCubes.ProgressListener{
             }
           });
 
-          MarchingCubes.saveTriangles(tris, destination);
+          saveTriangles(tris, destination);
           status.setText("Done!");
         } catch (FileNotFoundException ex) {
           throw new RuntimeException(ex);
@@ -119,5 +123,37 @@ class LargeRenderSaver extends JPanel implements MarchingCubes.ProgressListener{
 
   public void stop() {
     // not yet
+  }
+
+  /**
+   * Save triangles in wavefront obj format.
+   */
+  public static void saveTriangles(List<Triangle> tris, File file)
+          throws FileNotFoundException {
+    Map<Point3d, Integer> points = new HashMap<>();
+    int pointCount = 1;
+
+    PrintStream outStream = new PrintStream(file);
+
+    int count = 0;
+    for(Triangle t : tris) {
+
+      for(Point3d p : t.getPoints()) {
+        if(!points.containsKey(p)) {
+          points.put(p, pointCount++);
+          outStream.printf("v %f %f %f\n", p.getX(), p.getY(), p.getZ());
+        }
+      }
+
+      outStream.printf("f %d %d %d\n",
+              points.get(t.getPoints()[0]),
+              points.get(t.getPoints()[1]),
+              points.get(t.getPoints()[2]));
+
+      count++;
+      if(count % 10000 == 0) {
+        System.out.println("Saved "+count+" triangles of "+tris.size());
+      }
+    }
   }
 }
