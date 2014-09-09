@@ -43,15 +43,15 @@ class LargeRenderSaver extends JPanel implements ProgressListener{
   private static final double SIZE_MILLIMETERS = 180;
 
   // number of slices for the marching cubes
-  private static final int SLICES = 500;
+  private static final int SLICES = 400;
 //  private static final int SLICES = 100;
 
   // the size of the metaballs in generating an isosurface
 //  private static final double METABALL_SIZE = .005;
-  private static final double METABALL_SIZE = .005;
+  private static final double METABALL_SIZE = .015;
 
   private static final DensityFunction DENSITY_FUNCTION = DensityFunctions.sumPow(
-          METABALL_SIZE, 1.0/DENSITY, 2.0);
+          METABALL_SIZE, 1.0/DENSITY, 4.0);
 
   // the radius to search for points in building the isofield
   private static final double ISO_RADIUS = METABALL_SIZE * 5;
@@ -100,7 +100,7 @@ class LargeRenderSaver extends JPanel implements ProgressListener{
           List<Triangle> tris = new Tesselator(points, LargeRenderSaver.this)
                   .saveToObj(ISO_RADIUS, METABALL_SIZE, SLICES, DENSITY_FUNCTION);
           status.setText("Smoothing...");
-          //tris = Tesselator.averageVertices(tris);
+          tris = Tesselator.averageVertices(tris);
           status.setText("Saving...");
 
           tris = Lists.transform(tris, new Function<Triangle, Triangle>() {
