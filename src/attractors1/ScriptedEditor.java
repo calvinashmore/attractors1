@@ -143,7 +143,7 @@ class ScriptedEditor extends JPanel {
     });
   }
 
-  private static final String PARAM_SAVE_PREFIX = "#*** ";
+  public static final String PARAM_SAVE_PREFIX = "#*** ";
 
   void saveScriptAndParams() throws IOException {
     JFileChooser fc = new JFileChooser();

@@ -89,9 +89,15 @@ class LargeRenderSaver extends JPanel implements ProgressListener{
   }
 
   public void start() {
+    Executors.newSingleThreadExecutor().execute(createRunnable());
+  }
 
-    Executors.newSingleThreadExecutor().execute(new Runnable() {
+  public void startBlocking() {
+    createRunnable().run();
+  }
 
+  private Runnable createRunnable() {
+    return new Runnable() {
       @Override
       public void run() {
         status.setText("Calculating points...");
@@ -121,7 +127,7 @@ class LargeRenderSaver extends JPanel implements ProgressListener{
           throw new RuntimeException(ex);
         }
       }
-    });
+    };
   }
 
   public void stop() {
