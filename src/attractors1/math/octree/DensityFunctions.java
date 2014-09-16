@@ -108,15 +108,21 @@ public class DensityFunctions {
     };
   }
 
+  private static final double MAX_VALUE = 2.0;
+
   public static final DensityFunction sumPow(double ballSize, final double expectedDensity, final double pow) {
     final double inverseBallSize = 1.0 / ballSize;
     return new DensityFunction() {
       @Override
       public double getValue(List<Point3d> neighbors, Point3d point) {
         double sum = 0;
+        double maxValue = MAX_VALUE / expectedDensity;
         for(Point3d p : neighbors) {
           double c = getContribution(point, p, inverseBallSize);
           sum += Math.pow(c, pow);
+          if(sum > maxValue) {
+            return MAX_VALUE;
+          }
         }
         return sum * expectedDensity;
       }

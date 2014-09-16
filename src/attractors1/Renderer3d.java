@@ -11,6 +11,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.util.List;
 import javax.swing.JPanel;
 
@@ -19,6 +20,8 @@ import javax.swing.JPanel;
  * @author ashmore
  */
 public class Renderer3d extends RendererPanel {
+  private static final double MAX_DISTANCE = 12;
+  private static final double MIN_DISTANCE = 4;
 
   private static final int DOT_SIZE = 5;
   private static final int POINTS_TO_RENDER_PER_FRAME = 1000;
@@ -34,6 +37,7 @@ public class Renderer3d extends RendererPanel {
     MouseControl controller = new MouseControl();
     addMouseListener(controller);
     addMouseMotionListener(controller);
+    addMouseWheelListener(controller);
   }
 
   @Override
@@ -41,8 +45,6 @@ public class Renderer3d extends RendererPanel {
     super.setPoints(points);
     renderedPoints = 0;
   }
-
-
 
   private class MouseControl extends MouseAdapter {
     private int lastX, lastY;
@@ -69,6 +71,19 @@ public class Renderer3d extends RendererPanel {
 
       lastX = currentX;
       lastY = currentY;
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+      double rotation = e.getPreciseWheelRotation();
+      double newDistance = distance + rotation * .5;
+      newDistance = Math.max(Math.min(newDistance, MAX_DISTANCE), MIN_DISTANCE);
+
+      if(newDistance != distance) {
+        distance = newDistance;
+        repaint();
+        renderedPoints = 0;
+      }
     }
   }
 

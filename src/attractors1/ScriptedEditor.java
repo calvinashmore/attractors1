@@ -23,7 +23,6 @@ import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -32,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.script.ScriptException;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -87,8 +87,15 @@ class ScriptedEditor extends JPanel {
 
     JPanel buttons = new JPanel();
     buttonsAndError.add(buttons, BorderLayout.NORTH);
+    buttons.setLayout(new BoxLayout(buttons, BoxLayout.Y_AXIS));
+
+    JPanel buttons1 = new JPanel();
+    JPanel buttons2 = new JPanel();
+    buttons.add(buttons1);
+    buttons.add(buttons2);
+
     renderButton = new JButton("new params");
-    buttons.add(renderButton);
+    buttons1.add(renderButton);
     renderButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -96,14 +103,14 @@ class ScriptedEditor extends JPanel {
       }
     });
     JButton paramButton = new JButton("param navigator");
-    buttons.add(paramButton);
+    buttons1.add(paramButton);
     paramButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         showParameterNavigator();
       }
     });
-    buttons.add(largeRender = new JButton("save obj"));
+    buttons2.add(largeRender = new JButton("save obj"));
     largeRender.addActionListener(new ActionListener() {
       @Override public void actionPerformed(ActionEvent e) {
         showLargeRender(generator.newFunction(currentParams));
@@ -112,7 +119,7 @@ class ScriptedEditor extends JPanel {
     largeRender.setEnabled(false);
 
     JButton saveButton;
-    buttons.add(saveButton = new JButton("save"));
+    buttons2.add(saveButton = new JButton("save"));
     saveButton.addActionListener(new ActionListener() {
       @Override public void actionPerformed(ActionEvent e) {
         try {
@@ -124,7 +131,7 @@ class ScriptedEditor extends JPanel {
     });
 
     JButton loadButton;
-    buttons.add(loadButton = new JButton("load"));
+    buttons2.add(loadButton = new JButton("load"));
     loadButton.addActionListener(new ActionListener() {
       @Override public void actionPerformed(ActionEvent e) {
         try {

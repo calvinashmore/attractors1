@@ -8,11 +8,14 @@ package attractors1;
 import attractors1.math.ArrayParams;
 import attractors1.math.AttractorFunction;
 import attractors1.math.Point3d;
-import attractors1.math.cubes.MarchingCubes;
+import attractors1.math.cubes.Tesselator;
 import attractors1.math.cubes.Tesselator.ProgressListener;
 import attractors1.math.cubes.Triangle;
 import attractors1.math.octree.DensityFunction;
 import attractors1.math.octree.DensityFunctions;
+import attractors1.math.octree.IsoField;
+import attractors1.math.octree.Octree;
+import attractors1.math.octree.OctreeIsoField;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import java.awt.Dimension;
@@ -34,7 +37,7 @@ import javax.swing.JProgressBar;
  */
 class LargeRenderSaver extends JPanel implements ProgressListener{
 
-  private static final int DENSITY = 5;
+  private static final int DENSITY = 10;
   private static final int ITERATIONS = 100000 * DENSITY;
   private static final int FLUSH = 10000;
 
@@ -43,15 +46,15 @@ class LargeRenderSaver extends JPanel implements ProgressListener{
   private static final double SIZE_MILLIMETERS = 180;
 
   // number of slices for the marching cubes
-  private static final int SLICES = 400;
+  private static final int SLICES = 500;
 //  private static final int SLICES = 100;
 
   // the size of the metaballs in generating an isosurface
 //  private static final double METABALL_SIZE = .005;
-  private static final double METABALL_SIZE = .015;
+  private static final double METABALL_SIZE = .010;
 
   private static final DensityFunction DENSITY_FUNCTION = DensityFunctions.sumPow(
-          METABALL_SIZE, 1.0/DENSITY, 4.0);
+          METABALL_SIZE, 1.0/DENSITY, 5.0);
 
   // the radius to search for points in building the isofield
   private static final double ISO_RADIUS = METABALL_SIZE * 5;
@@ -97,8 +100,8 @@ class LargeRenderSaver extends JPanel implements ProgressListener{
 
         try {
           status.setText("Tesselating...");
-          List<Triangle> tris = new Tesselator(points, LargeRenderSaver.this)
-                  .saveToObj(ISO_RADIUS, METABALL_SIZE, SLICES, DENSITY_FUNCTION);
+          IsoField iso = new OctreeIsoField(new Octree(points), ISO_RADIUS, METABALL_SIZE, DENSITY_FUNCTION);
+          List<Triangle> tris = new Tesselator(iso, LargeRenderSaver.this, SLICES, ISO_RADIUS).tesselate();
           status.setText("Smoothing...");
           tris = Tesselator.averageVertices(tris);
           status.setText("Saving...");
