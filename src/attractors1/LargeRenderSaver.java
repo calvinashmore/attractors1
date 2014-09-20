@@ -98,7 +98,7 @@ class LargeRenderSaver {
         try {
           logger.setText("Tesselating...");
           double isoRadius = renderParams.isoMultiplier * renderParams.metaballSize;
-          IsoField iso = new OctreeIsoField(new Octree(points), isoRadius, renderParams.metaballSize, renderParams.densityFunction);
+          IsoField iso = new OctreeIsoField(new Octree(points), isoRadius, renderParams.metaballSize, renderParams.getDensityFunction());
           List<Triangle> tris = new Tesselator(iso, progressListener, renderParams.slices,
                   new Point3d(1,1,1).multiply(-1-2*isoRadius), new Point3d(1,1,1).multiply(1+2*isoRadius),
                   renderParams.threads, renderParams.chunks).tesselate();

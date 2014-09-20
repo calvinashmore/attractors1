@@ -36,8 +36,6 @@ public class RenderSaverParameters {
   @Parameter(names="--density_function_exponent")
   public double densityFunctionExponent = 5.0;
 
-  public DensityFunction densityFunction = DensityFunctions.sumPow(metaballSize, 1.0 / density, densityFunctionExponent);
-
   @Parameter(names="--iso_multiplier")
   public double isoMultiplier = 5;
 
@@ -46,4 +44,8 @@ public class RenderSaverParameters {
 
   @Parameter(names="--threads")
   public int threads = 10;
+
+  public DensityFunction getDensityFunction() {
+    return DensityFunctions.sumPow(metaballSize, 1.0 / density, densityFunctionExponent);
+  }
 }
