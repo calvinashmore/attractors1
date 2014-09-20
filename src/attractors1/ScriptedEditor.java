@@ -214,7 +214,7 @@ class ScriptedEditor extends JPanel {
     File outFile = fc.getSelectedFile();
 
     JFrame frame = new JFrame(outFile.getName());
-    final LargeRenderSaver renderSaver = new LargeRenderSaver(fn, outFile);
+    final LargeRenderSaverPanel renderSaver = new LargeRenderSaverPanel(fn, outFile);
     frame.add(renderSaver);
     frame.pack();
     frame.addWindowListener(new WindowAdapter() {

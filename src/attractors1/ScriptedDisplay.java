@@ -9,6 +9,8 @@ import attractors1.fn.scripting.ScriptLoader;
 import attractors1.fn.scripting.ScriptedFn;
 import attractors1.math.ArrayParams;
 import attractors1.math.AttractorFunction;
+import attractors1.math.Point3d;
+import attractors1.math.cubes.Tesselator;
 import com.google.common.base.Joiner;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -44,13 +46,9 @@ public class ScriptedDisplay extends JPanel {
   }
 
   public static void main(String args[]) throws Exception {
-
-    if(args.length == 1) {
+    if(args.length > 0) {
       // render a file
-      AttractorFunction fn = readFn(args[0]);
-      String outFilename = args[0] + ".obj";
-      LargeRenderSaver saver = new LargeRenderSaver(fn, new File(outFilename));
-      saver.startBlocking();
+      new CommandLineRenderSaver(args).render();
       return;
     }
 
@@ -60,41 +58,5 @@ public class ScriptedDisplay extends JPanel {
     frame.pack();
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-  }
-
-
-  private static AttractorFunction readFn(String filename) throws IOException {
-    File inFile = new File(filename);
-
-    try (FileInputStream inStream = new FileInputStream(inFile)) {
-      BufferedReader reader = new BufferedReader(new InputStreamReader(inStream));
-
-      List<String> lines = new ArrayList<>();
-      String line;
-      while ((line = reader.readLine()) != null) {
-        lines.add(line);
-      }
-
-      if (lines.isEmpty()) {
-        throw new IllegalArgumentException("no contents");
-      }
-
-      if (!lines.get(0).startsWith(ScriptedEditor.PARAM_SAVE_PREFIX)) {
-        throw new IllegalArgumentException("no parameters");
-      }
-      String paramLine = lines.get(0);
-      paramLine = paramLine.substring(ScriptedEditor.PARAM_SAVE_PREFIX.length());
-
-      ArrayParams params = ArrayParams.parse(paramLine);
-      lines.remove(0);
-
-      String joinedLines = Joiner.on("\n").join(lines);
-
-      try {
-        return new ScriptedFn(params, new ScriptLoader().loadScript(joinedLines));
-      } catch (ScriptException ex) {
-        throw new IllegalArgumentException("problem loading script", ex);
-      }
-    }
   }
 }

@@ -35,57 +35,47 @@ import javax.swing.JProgressBar;
  *
  * @author ashmore
  */
-class LargeRenderSaver extends JPanel implements ProgressListener{
+class LargeRenderSaver {
 
-  private static final int DENSITY = 10;
-  private static final int ITERATIONS = 100000 * DENSITY;
-  private static final int FLUSH = 10000;
+  public interface Logger {
+    public void setText(String text);
+  }
 
-  // box size is from -1 to +1
-  // upload as mm, so total size will be ~300mm cubed
-  private static final double SIZE_MILLIMETERS = 180;
 
-  // number of slices for the marching cubes
-  private static final int SLICES = 500;
-//  private static final int SLICES = 100;
-
-  // the size of the metaballs in generating an isosurface
-//  private static final double METABALL_SIZE = .005;
-  private static final double METABALL_SIZE = .010;
-
-  private static final DensityFunction DENSITY_FUNCTION = DensityFunctions.sumPow(
-          METABALL_SIZE, 1.0/DENSITY, 5.0);
-
-  // the radius to search for points in building the isofield
-  private static final double ISO_RADIUS = METABALL_SIZE * 5;
+//  private static final int DENSITY = 10;
+//  private static final int ITERATIONS = 100000 * DENSITY;
+//  private static final int FLUSH = 10000;
+//
+//  // box size is from -1 to +1
+//  // upload as mm, so total size will be ~300mm cubed
+//  private static final double SIZE_MILLIMETERS = 180;
+//
+//  // number of slices for the marching cubes
+//  private static final int SLICES = 500;
+////  private static final int SLICES = 100;
+//
+//  // the size of the metaballs in generating an isosurface
+////  private static final double METABALL_SIZE = .005;
+//  private static final double METABALL_SIZE = .010;
+//
+//  private static final DensityFunction DENSITY_FUNCTION = DensityFunctions.sumPow(
+//          METABALL_SIZE, 1.0/DENSITY, 5.0);
+//
+//  // the radius to search for points in building the isofield
+//  private static final double ISO_RADIUS = METABALL_SIZE * 5;
 
   private final AttractorFunction<Point3d, ArrayParams> fn;
   private final File destination;
-  private final JLabel status;
-  private final JLabel triangleLabel;
-  private final JLabel countLabel;
-  private final JProgressBar progressBar;
+  private final ProgressListener progressListener;
+  private final Logger logger;
+  private final RenderSaverParameters renderParams;
 
-  public LargeRenderSaver(AttractorFunction<Point3d, ArrayParams> fn, File destination) {
+  public LargeRenderSaver(ProgressListener progressListener, Logger logger, File destination, AttractorFunction<Point3d, ArrayParams> fn, RenderSaverParameters renderParams) {
+    this.progressListener = progressListener;
+    this.logger = logger;
     this.destination = destination;
     this.fn = fn;
-
-    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    add(status = new JLabel());
-    add(triangleLabel = new JLabel());
-    add(countLabel = new JLabel());
-    add(progressBar = new JProgressBar());
-
-    setPreferredSize(new Dimension(300, 100));
-  }
-
-  @Override
-  public void progress(int line, int totalLines, int triangles) {
-    progressBar.setMinimum(0);
-    progressBar.setMaximum(totalLines-1);
-    progressBar.setValue(line);
-    triangleLabel.setText("triangles: "+triangles);
-    countLabel.setText(String.format("%d out of %d lines",line,totalLines));
+    this.renderParams = renderParams;
   }
 
   public void start() {
@@ -100,29 +90,33 @@ class LargeRenderSaver extends JPanel implements ProgressListener{
     return new Runnable() {
       @Override
       public void run() {
-        status.setText("Calculating points...");
-        List<Point3d> points = fn.iterate(Point3d.ZERO, ITERATIONS, FLUSH);
+        logger.setText("Calculating points...");
+        int iterations = renderParams.iterationMultiplier * renderParams.density;
+        List<Point3d> points = fn.iterate(Point3d.ZERO, iterations, renderParams.flush);
         points = Point3d.normalize(points);
 
         try {
-          status.setText("Tesselating...");
-          IsoField iso = new OctreeIsoField(new Octree(points), ISO_RADIUS, METABALL_SIZE, DENSITY_FUNCTION);
-          List<Triangle> tris = new Tesselator(iso, LargeRenderSaver.this, SLICES, ISO_RADIUS).tesselate();
-          status.setText("Smoothing...");
+          logger.setText("Tesselating...");
+          double isoRadius = renderParams.isoMultiplier * renderParams.metaballSize;
+          IsoField iso = new OctreeIsoField(new Octree(points), isoRadius, renderParams.metaballSize, renderParams.densityFunction);
+          List<Triangle> tris = new Tesselator(iso, progressListener, renderParams.slices,
+                  new Point3d(1,1,1).multiply(-1-2*isoRadius), new Point3d(1,1,1).multiply(1+2*isoRadius),
+                  renderParams.threads, renderParams.chunks).tesselate();
+          logger.setText("Smoothing...");
           tris = Tesselator.averageVertices(tris);
-          status.setText("Saving...");
+          logger.setText("Saving...");
 
           tris = Lists.transform(tris, new Function<Triangle, Triangle>() {
             @Override public Triangle apply(Triangle f) {
               return new Triangle(
-                      f.getPoints()[0].multiply(SIZE_MILLIMETERS/2),
-                      f.getPoints()[1].multiply(SIZE_MILLIMETERS/2),
-                      f.getPoints()[2].multiply(SIZE_MILLIMETERS/2));
+                      f.getPoints()[0].multiply(renderParams.sizeMillimeters/2),
+                      f.getPoints()[1].multiply(renderParams.sizeMillimeters/2),
+                      f.getPoints()[2].multiply(renderParams.sizeMillimeters/2));
             }
           });
 
           saveTriangles(tris, destination);
-          status.setText("Done!");
+          logger.setText("Done!");
         } catch (FileNotFoundException ex) {
           throw new RuntimeException(ex);
         }

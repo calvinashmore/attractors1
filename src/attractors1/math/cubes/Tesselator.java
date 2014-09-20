@@ -26,31 +26,35 @@ import java.util.logging.Logger;
  * @author ashmore
  */
 public class Tesselator {
-  private static final double ISO_LEVEL = 1.0;
-  private static final int NUMBER_THREADS = 10;
-  private static final int CHUNKS = 10;
-
-  private final ExecutorService executor = Executors.newFixedThreadPool(NUMBER_THREADS);
 
   public interface ProgressListener {
     public void progress(int line, int totalLines, int triangles);
   }
 
+  private static final double ISO_LEVEL = 1.0;
+  private final int chunks;
+  private final ExecutorService executor;
   private final IsoField isoField;
   private final ProgressListener listener;
   private final Point3d min;
   private final Point3d max;
   private final int chunkResolution;
 
-  /**
-   * This will work best if size is a multiple of {@link #CHUNKS}.
-   */
   public Tesselator(IsoField field, ProgressListener listener, int size, Point3d min, Point3d max) {
+    this(field, listener, size, min, max, 10 ,10);
+  }
+
+  /**
+   * This will work best if size is a multiple of {@link #chunks}.
+   */
+  public Tesselator(IsoField field, ProgressListener listener, int size, Point3d min, Point3d max, int numberThreads, int chunks) {
     this.isoField = field;
     this.listener = listener;
     this.min = min;
     this.max = max;
-    this.chunkResolution = size / CHUNKS;
+    this.chunkResolution = size / chunks;
+    this.executor = Executors.newFixedThreadPool(numberThreads);
+    this.chunks = chunks;
   }
 
   public Tesselator(IsoField field, ProgressListener listener, int size, double isoRadius) {
@@ -66,11 +70,11 @@ public class Tesselator {
     final List<Triangle> allTriangles = new ArrayList<>();
     final AtomicInteger totalProgress = new AtomicInteger();
     final AtomicInteger triangleCount = new AtomicInteger();
-    final int progressSize = CHUNKS * CHUNKS * CHUNKS;
+    final int progressSize = chunks * chunks * chunks;
 
-    for(int ix=0; ix<CHUNKS; ix++)
-    for(int iy=0; iy<CHUNKS; iy++)
-    for(int iz=0; iz<CHUNKS; iz++) {
+    for(int ix=0; ix<chunks; ix++)
+    for(int iy=0; iy<chunks; iy++)
+    for(int iz=0; iz<chunks; iz++) {
 
       final int x = ix;
       final int y = iy;
@@ -78,13 +82,14 @@ public class Tesselator {
       executor.submit(new Runnable() {
         @Override
         public void run() {
+//          System.out.println("started "+x+" "+y+" "+z);
           Stopwatch timer = Stopwatch.createStarted();
           List<Triangle> chunkTriangles = renderChunk(x, y, z);
-          System.out.println("Rendered chunk: "+x+" "+y+" "+z+"in "+
-                  timer.elapsed(TimeUnit.MILLISECONDS)+" ms");
-
           int currentProgress = totalProgress.addAndGet(1);
           int currentTriangles = triangleCount.addAndGet(chunkTriangles.size());
+          System.out.println("Rendered chunk: "+x+" "+y+" "+z+" in "
+                  + timer.elapsed(TimeUnit.MILLISECONDS)+" ms "
+                  + "("+chunkTriangles.size()+"/"+triangleCount.get()+" triangles)");
           listener.progress(currentProgress, progressSize, currentTriangles);
 
           synchronized(allTriangles) {
@@ -107,7 +112,7 @@ public class Tesselator {
   // to be called within a render thread.
   private List<Triangle> renderChunk(int cx, int cy, int cz) {
     // build chunk
-    Point3d chunkDelta = max.subtract(min).multiply(1.0 / CHUNKS);
+    Point3d chunkDelta = max.subtract(min).multiply(1.0 / chunks);
     double dx = chunkDelta.getX();
     double dy = chunkDelta.getY();
     double dz = chunkDelta.getZ();
