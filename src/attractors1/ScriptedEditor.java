@@ -69,7 +69,10 @@ class ScriptedEditor extends JPanel {
   private final JPanel errorContainer;
   private final Renderer renderer;
   private final ExecutorService executor = Executors.newCachedThreadPool();
+  private final ResultFinder resultFinder = new ResultFinder();
   private ArrayParams currentParams;
+  
+  private ParameterFlyer flyer = null;
 
   public ScriptedEditor(Renderer renderer) {
     this.renderer = renderer;
@@ -108,6 +111,21 @@ class ScriptedEditor extends JPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         showParameterNavigator();
+      }
+    });
+    JButton flyButton = new JButton("fly");
+    buttons1.add(flyButton);
+    flyButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (flyer == null) {
+          if (!buildGenerator()) return;
+          flyer = new ParameterFlyer(renderer, generator);
+          flyer.start();
+        } else {
+          flyer.stop();
+          flyer = null;
+        }
       }
     });
     buttons2.add(largeRender = new JButton("save obj"));
@@ -197,7 +215,7 @@ class ScriptedEditor extends JPanel {
 
       if(foundParams) {
         generator = createGenerator(joinedLines);
-        GenerationResult result = GenerationResult.generatePoints(generator, currentParams);
+        GenerationResult result = resultFinder.generatePoints(generator, currentParams);
         renderer.setPoints(result.getPoints());
         largeRender.setEnabled(true);
         renderButton.setEnabled(true);
@@ -232,19 +250,13 @@ class ScriptedEditor extends JPanel {
    */
   private void generateNewParams() {
     renderButton.setEnabled(false);
-    if (!scriptArea.getText().equals(lastContents)) {
-      ScriptedGenerator scriptedGenerator = createGenerator(scriptArea.getText());
-      if (scriptedGenerator == null) {
-        return;
-      }
-      generator = scriptedGenerator;
-    }
+    if (!buildGenerator()) return;
     // generator should not be null
     executor.submit(new Runnable() {
       @Override
       public void run() {
         try {
-          GenerationResult result = GenerationResult.generatePoints(generator);
+          GenerationResult result = resultFinder.generatePoints(generator);
           if (result != null) {
             currentParams = result.getParams();
             renderer.setPoints(result.getPoints());
@@ -255,6 +267,17 @@ class ScriptedEditor extends JPanel {
         }
       }
     });
+  }
+
+  private boolean buildGenerator() {
+    if (!scriptArea.getText().equals(lastContents)) {
+      ScriptedGenerator scriptedGenerator = createGenerator(scriptArea.getText());
+      if (scriptedGenerator == null) {
+        return false;
+      }
+      generator = scriptedGenerator;
+    }
+    return true;
   }
 
   private ScriptedGenerator createGenerator(String scriptText) {
@@ -280,7 +303,7 @@ class ScriptedEditor extends JPanel {
     final ParameterSpaceView paramRenderer = new ParameterSpaceView(new ParameterSpaceRendererPanel.ParamListener() {
       @Override
       public void onParams(ArrayParams params) {
-        GenerationResult result = GenerationResult.generatePoints(generator, params);
+        GenerationResult result = resultFinder.generatePoints(generator, params);
         renderer.setPoints(result.getPoints());
         currentParams = params;
       }
